@@ -265,5 +265,7 @@ class DatabaseStore extends Store
 
 			return $this->_userSettings;
 		}
+
+		return [];
 	}
 }
