@@ -94,7 +94,8 @@ class DatabaseStore extends Store
 			                              ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId) {
 				                              $join->on($this->_settingsTable . '.id', '=',
 				                                        $this->_settingsValueTable . '.setting_id')
-				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId);
+				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId)
+				                                    ->where($this->_settingsTable . '.is_user_setting', '=', true);
 			                              })
 			                              ->get();
 
