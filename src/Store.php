@@ -64,11 +64,11 @@ abstract class Store
 	 * @param string $key          The name of the setting.
 	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
 	 * @param bool    $useUserSettings Whether to take into account user settings. User settings have priority over main settings. Defaults to true.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb.core'.
+	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return mixed The value of the setting.
 	 */
-	public function get($key, $defaultValue = null, $useUserSettings = true, $package = 'mybb.core')
+	public function get($key, $defaultValue = null, $useUserSettings = true, $package = 'mybb/core')
 	{
 		$this->assertLoaded();
 
@@ -84,13 +84,13 @@ abstract class Store
 	 *
 	 * @param string $key          The name of the setting.
 	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb.core'.
+	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return mixed The value of the setting.
 	 */
-	private function getFromMainSettings($key, $defaultValue = null, $package = 'mybb.core')
+	private function getFromMainSettings($key, $defaultValue = null, $package = 'mybb/core')
 	{
-		$val = array_get($this->_settings, $package . '.' . $key . '.value', $defaultValue);
+		$val = array_get($this->_settings, $package . '.' . $key, $defaultValue);
 
 		if ($val === null || $defaultValue === null) {
 			return $val;
@@ -106,13 +106,13 @@ abstract class Store
 	 *
 	 * @param string $key          The name of the setting.
 	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb.core'.
+	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return mixed The value of the setting.
 	 */
-	private function getFromUserSettings($key, $defaultValue = null, $package = 'mybb.core')
+	private function getFromUserSettings($key, $defaultValue = null, $package = 'mybb/core')
 	{
-		$val = array_get($this->_userSettings, $package . '.' . $key  . '.value', $defaultValue);
+		$val = array_get($this->_userSettings, $package . '.' . $key, $defaultValue);
 
 		if ($val === null || $defaultValue === null) {
 			return $val;
@@ -130,11 +130,11 @@ abstract class Store
 	 * @param mixed  $value  The value for the setting.
 	 * @param bool    $useUserSettings Whether to set the setting as a user setting. Defaults to false.
 	 *
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb.core'.
+	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return void
 	 */
-	public function set($key, $value, $useUserSettings = false, $package = 'mybb.core')
+	public function set($key, $value, $useUserSettings = false, $package = 'mybb/core')
 	{
 		$this->assertLoaded();
 		$this->_modified = true;
@@ -142,10 +142,10 @@ abstract class Store
 		if ($useUserSettings) {
 			if (is_array($key)) {
 				foreach ($key as $settingKey => $settingVal) {
-					array_set($this->_userSettings, $package . '.' . $settingKey . '.value', $settingVal);
+					array_set($this->_userSettings, $package . '.' . $settingKey, $settingVal);
 				}
 			} else {
-				array_set($this->_userSettings, $package . '.' . $key . '.value', $value);
+				array_set($this->_userSettings, $package . '.' . $key, $value);
 			}
 		} else {
 			if (is_array($key)) {
@@ -153,7 +153,7 @@ abstract class Store
 					array_set($this->_settings, $package . '.' . $settingKey, $settingVal);
 				}
 			} else {
-				array_set($this->_settings, $package . '.' . $key . '.value', $value);
+				array_set($this->_settings, $package . '.' . $key, $value);
 			}
 		}
 	}
@@ -162,11 +162,11 @@ abstract class Store
 	 * Check if a setting exists.
 	 *
 	 * @param string       $key The name of the setting.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb.core'.
+	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return bool Whether the setting exists.
 	 */
-	public function has($key, $package = 'mybb.core')
+	public function has($key, $package = 'mybb/core')
 	{
 		$this->assertLoaded();
 
