@@ -51,6 +51,20 @@ abstract class Store
 	protected $_modified = false;
 
 	/**
+	 * A list of modified setting keys.
+	 *
+	 * @var array
+	 */
+	protected $_modifiedSettings = [];
+
+	/**
+	 * A list of modified user setting keys.
+	 *
+	 * @var array
+	 */
+	protected $_modifiedUserSettings = [];
+
+	/**
 	 * @param Guard $guard Laravel guard instance, used to get user settings.
 	 */
 	public function __construct(Guard $guard)
@@ -143,17 +157,25 @@ abstract class Store
 			if (is_array($key)) {
 				foreach ($key as $settingKey => $settingVal) {
 					array_set($this->_userSettings, $package . '.' . $settingKey, $settingVal);
+
+					$this->_modifiedUserSettings[$package . '.' . $settingKey] = $settingVal;
 				}
 			} else {
 				array_set($this->_userSettings, $package . '.' . $key, $value);
+
+				$this->_modifiedUserSettings[$package . '.' . $key] = $value;
 			}
 		} else {
 			if (is_array($key)) {
 				foreach ($key as $settingKey => $settingVal) {
 					array_set($this->_settings, $package . '.' . $settingKey, $settingVal);
+
+					$this->_modifiedSettings[$package . '.' . $settingKey] = $settingVal;
 				}
 			} else {
 				array_set($this->_settings, $package . '.' . $key, $value);
+
+				$this->_modifiedSettings[$package . '.' . $key] = $value;
 			}
 		}
 	}

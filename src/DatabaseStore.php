@@ -74,9 +74,16 @@ class DatabaseStore extends Store
 		$existingKeys = $this->_connection->table($this->_settingsTable)->lists('package', 'name');
 
 		$updateData = [];
-		$insertData = array_dot($settings);
+		$insertData = array_dot($this->_modifiedSettings);
 
-		var_dump($existingKeys);
+		foreach ($existingKeys as $key => $val) {
+			if (isset($insertData[$val . '.' . $key])) {
+				$updateData[$key] = $insertData[$val . '.' . $key];
+				unset($insertData[$val . '.' . $key]);
+			}
+		}
+
+		var_dump($updateData);
 		var_dump($insertData);
 	}
 
