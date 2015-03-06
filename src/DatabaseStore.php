@@ -100,11 +100,16 @@ class DatabaseStore extends Store
 			                                       $this->_settingsTable . '.name',
 			                                       $this->_settingsValueTable . '.value'
 		                                       ])
+		                              ->where('is_user_setting', '=', false)
 		                              ->get();
 
+		$settingsArray = [];
+
 		foreach ($settings as $setting) {
-			array_set($this->_settings, $setting->package . '.' . $setting->name, $setting->value);
+			array_set($settingsArray, $setting->package . '.' . $setting->name, $setting->value);
 		}
+
+		return $settingsArray;
 	}
 
 	/**
@@ -131,9 +136,13 @@ class DatabaseStore extends Store
 			                                       ])
 			                              ->get();
 
+			$settingsArray = [];
+
 			foreach ($settings as $setting) {
-				array_set($this->_userSettings, $setting->package . '.' . $setting->name, $setting->value);
+				array_set($settingsArray, $setting->package . '.' . $setting->name, $setting->value);
 			}
+
+			return $settingsArray;
 		}
 	}
 }

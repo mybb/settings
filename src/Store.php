@@ -235,7 +235,7 @@ abstract class Store
 	public function all()
 	{
 		$this->assertLoaded();
-		
+
 		return array_merge($this->_settings, $this->_userSettings);
 	}
 }
