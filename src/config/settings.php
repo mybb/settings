@@ -23,4 +23,8 @@ return [
 	 * The name of the database table containing the setting values.
 	 */
 	'setting_values_table' => 'setting_values',
+	/**
+	 * Cache name for settings when caching core settings.
+	 */
+    'settings_cache_name' => 'mybb.core.settings',
 ];

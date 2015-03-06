@@ -40,4 +40,23 @@ class Manager extends \Illuminate\Support\Manager
 		return new DatabaseStore($this->app->make('Illuminate\Contracts\Auth\Guard'), $connection, $table,
 		                         $valuesTable);
 	}
+
+	/**
+	 * Create a cache driver.
+	 *
+	 * @return CacheStore
+	 */
+	public function createCacheDriver()
+	{
+		$connection = $this->app['db']->connection();
+
+		$table = $this->app['config']->get('settings.settings_table');
+		$valuesTable = $this->app['config']->get('settings.setting_values_table');
+
+		$cache = $this->app->make('Illuminate\Contracts\Cache\Repository');
+		$cacheName = $this->app['config']->get('settings.settings_cache_name');
+
+		return new CacheStore($this->app->make('Illuminate\Contracts\Auth\Guard'), $connection, $table,
+		                      $valuesTable, $cache, $cacheName);
+	}
 }
