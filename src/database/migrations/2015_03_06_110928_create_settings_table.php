@@ -16,7 +16,7 @@ class CreateSettingsTable extends Migration {
 			$table->increments('id');
 			$table->string('name');
 			$table->string('package')->default('mybb.core');
-			$table->boolean('is_user_setting')->default('false');
+			$table->boolean('is_user_setting')->default(false);
 
 			$table->unique(['name', 'package']);
 		});
