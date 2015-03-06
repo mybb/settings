@@ -226,4 +226,14 @@ abstract class Store
 			$this->_hasLoaded = true;
 		}
 	}
+
+	/**
+	 * Get all settings.
+	 *
+	 * @return array The combined user and board settings as an array.
+	 */
+	public function all()
+	{
+		return array_merge($this->_settings, $this->_userSettings);
+	}
 }

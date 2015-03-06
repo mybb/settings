@@ -67,7 +67,22 @@ class DatabaseStore extends Store
 	 */
 	protected function flush(array $settings, array $userSettings, $userId = -1)
 	{
-		// TODO: Implement flush() method.
+		if ($userId > 0) {
+			$this->flushUserSettings($userSettings, $userId);
+		}
+
+
+	}
+
+	/**
+	 * Flush the user settings to the database.
+	 *
+	 * @param array $userSettings The user settings to flush.
+	 * @param int   $userId The ID of the user to flush the settings for.
+	 */
+	private function flushUserSettings(array $userSettings, $userId = -1)
+	{
+		// TODO: Persist user settings
 	}
 
 	/**
@@ -80,9 +95,16 @@ class DatabaseStore extends Store
 		$settings = $this->_connection->table($this->_settingsTable)
 		                              ->join($this->_settingsValueTable, $this->_settingsTable . '.id', '=',
 		                                     $this->_settingsValueTable . '.setting_id')
+		                              ->select([
+			                                       $this->_settingsTable . '.package',
+			                                       $this->_settingsTable . '.name',
+			                                       $this->_settingsValueTable . '.value'
+		                                       ])
 		                              ->get();
 
-		var_dump($settings);
+		foreach ($settings as $setting) {
+			array_set($this->_settings, $setting->package . '.' . $setting->name, $setting->value);
+		}
 	}
 
 	/**
@@ -102,9 +124,16 @@ class DatabaseStore extends Store
 				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId)
 				                                   ->where($this->_settingsTable . '.is_user_setting', '=', true);
 			                              })
+			                              ->select([
+				                                       $this->_settingsTable . '.package',
+				                                       $this->_settingsTable . '.name',
+				                                       $this->_settingsValueTable . '.value'
+			                                       ])
 			                              ->get();
 
-			var_dump($settings);
+			foreach ($settings as $setting) {
+				array_set($this->_userSettings, $setting->package . '.' . $setting->name, $setting->value);
+			}
 		}
 	}
 }
