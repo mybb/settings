@@ -41,7 +41,8 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 	 */
 	public function register()
 	{
-		$this->app->bindShared('MyBB\Settings\Manager', function (Application $app) {
+		$this->app->bindShared('MyBB\Settings\Manager', function (Application $app)
+		{
 //		    $app->shutdown(function($app) {
 //			    $app->make('MyBB\Settings\Store')->save();
 //		    });
@@ -49,7 +50,8 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 			return new Manager($app);
 		});
 
-		$this->app->bind('MyBB\Settings\Store', function (Application $app) {
+		$this->app->bind('MyBB\Settings\Store', function (Application $app)
+		{
 			return $app->make('MyBB\Settings\Manager')->driver();
 		});
 

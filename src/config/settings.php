@@ -26,5 +26,5 @@ return [
 	/**
 	 * Cache name for settings when caching core settings.
 	 */
-    'settings_cache_name' => 'mybb.core.settings',
+	'settings_cache_name' => 'mybb.core.settings',
 ];

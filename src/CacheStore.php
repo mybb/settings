@@ -26,6 +26,7 @@ class CacheStore extends DatabaseStore
 	protected $_cache;
 	/**
 	 * The name of the cache to store settings in.
+	 *
 	 * @var string
 	 */
 	protected $_cacheName;
@@ -35,8 +36,8 @@ class CacheStore extends DatabaseStore
 	 * @param ConnectionInterface $connection         Database connection to use to manage settings.
 	 * @param string              $settingsTable      The name of the main settings table.
 	 * @param string              $settingsValueTable The name of the setting values table.
-	 * @param Repository          $cache Cache repository for settings.
-	 * @param string              $cacheName The name of the cache to use.
+	 * @param Repository          $cache              Cache repository for settings.
+	 * @param string              $cacheName          The name of the cache to use.
 	 */
 	public function __construct(
 		Guard $guard,
@@ -74,7 +75,8 @@ class CacheStore extends DatabaseStore
 	 */
 	protected function loadSettings()
 	{
-		if (($settings = $this->_cache->get($this->_cacheName)) === null) {
+		if(($settings = $this->_cache->get($this->_cacheName)) === null)
+		{
 			$settings = parent::loadSettings();
 
 			$this->_cache->forever($this->_cacheName, $settings);

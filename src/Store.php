@@ -88,7 +88,8 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		if ($useUserSettings && array_has($this->_userSettings, $package . '.' . $key)) {
+		if($useUserSettings && array_has($this->_userSettings, $package . '.' . $key))
+		{
 			return $this->getFromUserSettings($key, $defaultValue, $package);
 		}
 
@@ -108,7 +109,8 @@ abstract class Store
 	{
 		$val = array_get($this->_settings, $package . '.' . $key, $defaultValue);
 
-		if ($val === null || $defaultValue === null) {
+		if($val === null || $defaultValue === null)
+		{
 			return $val;
 		}
 
@@ -130,7 +132,8 @@ abstract class Store
 	{
 		$val = array_get($this->_userSettings, $package . '.' . $key, $defaultValue);
 
-		if ($val === null || $defaultValue === null) {
+		if($val === null || $defaultValue === null)
+		{
 			return $val;
 		}
 
@@ -155,26 +158,34 @@ abstract class Store
 		$this->assertLoaded();
 		$this->_modified = true;
 
-		if ($useUserSettings) {
-			if (is_array($key)) {
-				foreach ($key as $settingKey => $settingVal) {
+		if($useUserSettings)
+		{
+			if(is_array($key))
+			{
+				foreach($key as $settingKey => $settingVal)
+				{
 					array_set($this->_userSettings, $package . '.' . $settingKey, $settingVal);
 
 					$this->_modifiedUserSettings[$package . '.' . $settingKey] = $settingVal;
 				}
-			} else {
+			} else
+			{
 				array_set($this->_userSettings, $package . '.' . $key, $value);
 
 				$this->_modifiedUserSettings[$package . '.' . $key] = $value;
 			}
-		} else {
-			if (is_array($key)) {
-				foreach ($key as $settingKey => $settingVal) {
+		} else
+		{
+			if(is_array($key))
+			{
+				foreach($key as $settingKey => $settingVal)
+				{
 					array_set($this->_settings, $package . '.' . $settingKey, $settingVal);
 
 					$this->_modifiedSettings[$package . '.' . $settingKey] = $settingVal;
 				}
-			} else {
+			} else
+			{
 				array_set($this->_settings, $package . '.' . $key, $value);
 
 				$this->_modifiedSettings[$package . '.' . $key] = $value;
@@ -232,11 +243,13 @@ abstract class Store
 	 */
 	public function save()
 	{
-		if ($this->_modified) {
+		if($this->_modified)
+		{
 			$user = $this->_guard->user();
 			$userId = -1;
 
-			if ($user !== null) {
+			if($user !== null)
+			{
 				$userId = $user->getAuthIdentifier();
 			}
 
@@ -251,11 +264,13 @@ abstract class Store
 	 */
 	protected function assertLoaded()
 	{
-		if (!$this->_hasLoaded) {
+		if(!$this->_hasLoaded)
+		{
 			$this->_settings = $this->loadSettings();
 			$user = $this->_guard->user();
 
-			if ($user !== null) {
+			if($user !== null)
+			{
 				$this->_userSettings = $this->loadUserSettings($user->getAuthIdentifier());
 			}
 

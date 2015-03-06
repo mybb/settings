@@ -13,7 +13,8 @@ class CreateSettingValuesTable extends Migration
 	 */
 	public function up()
 	{
-		Schema::create('setting_values', function (Blueprint $table) {
+		Schema::create('setting_values', function (Blueprint $table)
+		{
 			$table->increments('id');
 			$table->unsignedInteger('setting_id');
 			$table->string('value');

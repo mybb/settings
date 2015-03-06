@@ -67,13 +67,16 @@ class DatabaseStore extends Store
 	 */
 	protected function flush(array $settings, array $userSettings, $userId = -1)
 	{
-		if ($userId > 0 && !empty($userSettings)) {
+		if($userId > 0 && !empty($userSettings))
+		{
 			$this->flushUserSettings($userSettings, $userId);
 		}
 
-		if (!empty($settings)) {
+		if(!empty($settings))
+		{
 			$modifiedSettingNames = [];
-			array_walk($settings, function ($val, $key) use (&$modifiedSettingNames) {
+			array_walk($settings, function ($val, $key) use (&$modifiedSettingNames)
+			{
 				$keyParts = explode('.', $key);
 				array_shift($keyParts);
 				$modifiedSettingNames[implode('.', $keyParts)] = $val;
@@ -81,7 +84,8 @@ class DatabaseStore extends Store
 
 			$existingKeys = $this->_connection->table($this->_settingsTable)->where('is_user_setting', '=', false)
 			                                  ->join($this->_settingsValueTable,
-				                                  function (JoinClause $join) use ($userId) {
+				                                  function (JoinClause $join) use ($userId)
+				                                  {
 					                                  $join->on($this->_settingsTable . '.id', '=',
 					                                            $this->_settingsValueTable . '.setting_id');
 				                                  })->whereIn('name', array_keys($modifiedSettingNames))
@@ -92,9 +96,12 @@ class DatabaseStore extends Store
 				                                           $this->_settingsTable . '.id'
 			                                           ])->get();
 
-			foreach ($existingKeys as $existing) {
-				if (isset($settings[$existing->package . '.' . $existing->name])) {
-					if ($settings[$existing->package . '.' . $existing->name] != $existing->value) {
+			foreach($existingKeys as $existing)
+			{
+				if(isset($settings[$existing->package . '.' . $existing->name]))
+				{
+					if($settings[$existing->package . '.' . $existing->name] != $existing->value)
+					{
 						$this->_connection->table($this->_settingsValueTable)->where('setting_id', '=', $existing->id)
 						                  ->update([
 							                           'value' => $settings[$existing->package . '.' . $existing->name],
@@ -105,7 +112,8 @@ class DatabaseStore extends Store
 				}
 			}
 
-			foreach ($settings as $key => $val) {
+			foreach($settings as $key => $val)
+			{
 				$keyParts = explode('.', $key);
 				$package = $keyParts[0];
 				array_shift($keyParts);
@@ -137,14 +145,16 @@ class DatabaseStore extends Store
 	private function flushUserSettings(array $userSettings, $userId = -1)
 	{
 		$modifiedSettingNames = [];
-		array_walk($userSettings, function ($val, $key) use (&$modifiedSettingNames) {
+		array_walk($userSettings, function ($val, $key) use (&$modifiedSettingNames)
+		{
 			$keyParts = explode('.', $key);
 			array_shift($keyParts);
 			$modifiedSettingNames[implode('.', $keyParts)] = $val;
 		});
 
 		$existingKeys = $this->_connection->table($this->_settingsTable)->where('is_user_setting', '=', true)
-		                                  ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId) {
+		                                  ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId)
+		                                  {
 			                                  $join->on($this->_settingsTable . '.id', '=',
 			                                            $this->_settingsValueTable . '.setting_id')
 			                                       ->where($this->_settingsValueTable . '.user_id', '=', $userId);
@@ -156,9 +166,12 @@ class DatabaseStore extends Store
 			                                           $this->_settingsTable . '.id'
 		                                           ])->get();
 
-		foreach ($existingKeys as $existing) {
-			if (isset($userSettings[$existing->package . '.' . $existing->name])) {
-				if ($userSettings[$existing->package . '.' . $existing->name] != $existing->value) {
+		foreach($existingKeys as $existing)
+		{
+			if(isset($userSettings[$existing->package . '.' . $existing->name]))
+			{
+				if($userSettings[$existing->package . '.' . $existing->name] != $existing->value)
+				{
 					$this->_connection->table($this->_settingsValueTable)->where('setting_id', '=', $existing->id)
 					                  ->update([
 						                           'value' => $userSettings[$existing->package . '.' . $existing->name],
@@ -169,7 +182,8 @@ class DatabaseStore extends Store
 			}
 		}
 
-		foreach ($userSettings as $key => $val) {
+		foreach($userSettings as $key => $val)
+		{
 			$keyParts = explode('.', $key);
 			$package = $keyParts[0];
 			array_shift($keyParts);
@@ -210,7 +224,8 @@ class DatabaseStore extends Store
 		                              ->get();
 
 
-		foreach ($settings as $setting) {
+		foreach($settings as $setting)
+		{
 			array_set($this->_settings, $setting->package . '.' . $setting->name, $setting->value);
 		}
 
@@ -226,9 +241,11 @@ class DatabaseStore extends Store
 	 */
 	protected function loadUserSettings($userId = -1)
 	{
-		if ($userId > 0) {
+		if($userId > 0)
+		{
 			$settings = $this->_connection->table($this->_settingsTable)
-			                              ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId) {
+			                              ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId)
+			                              {
 				                              $join->on($this->_settingsTable . '.id', '=',
 				                                        $this->_settingsValueTable . '.setting_id')
 				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId)
@@ -241,7 +258,8 @@ class DatabaseStore extends Store
 			                                       ])
 			                              ->get();
 
-			foreach ($settings as $setting) {
+			foreach($settings as $setting)
+			{
 				array_set($this->_userSettings, $setting->package . '.' . $setting->name, $setting->value);
 			}
 
