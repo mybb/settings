@@ -2,16 +2,17 @@
 /**
  * Database setting store.
  *
- * @author MyBB Group
- * @version 2.0.0
- * @package mybb/settings
+ * @author    MyBB Group
+ * @version   2.0.0
+ * @package   mybb/settings
  * @copyright Copyright (c) 2014, MyBB Group
- * @license http://www.mybb.com/about/license GNU LESSER GENERAL PUBLIC LICENSE
- * @link http://www.mybb.com
+ * @license   http://www.mybb.com/about/license GNU LESSER GENERAL PUBLIC LICENSE
+ * @link      http://www.mybb.com
  */
 
 namespace MyBB\Settings;
 
+use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\JoinClause;
 
@@ -37,15 +38,19 @@ class DatabaseStore extends Store
 	private $_settingsValueTable;
 
 	/**
+	 * @param Guard               $guard              Laravel guard instance, used to get user settings.
 	 * @param ConnectionInterface $connection         Database connection to use to manage settings.
 	 * @param string              $settingsTable      The name of the main settings table.
 	 * @param string              $settingsValueTable The name of the setting values table.
 	 */
 	public function __construct(
+		Guard $guard,
 		ConnectionInterface $connection,
 		$settingsTable = 'settings',
 		$settingsValueTable = 'setting_values'
 	) {
+		parent::__construct($guard);
+
 		$this->_connection = $connection;
 		$this->_settingsTable = $settingsTable;
 		$this->_settingsValueTable = $settingsValueTable;
@@ -95,7 +100,7 @@ class DatabaseStore extends Store
 				                              $join->on($this->_settingsTable . '.id', '=',
 				                                        $this->_settingsValueTable . '.setting_id')
 				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId)
-				                                    ->where($this->_settingsTable . '.is_user_setting', '=', true);
+				                                   ->where($this->_settingsTable . '.is_user_setting', '=', true);
 			                              })
 			                              ->get();
 
