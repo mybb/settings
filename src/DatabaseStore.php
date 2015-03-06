@@ -14,9 +14,8 @@ namespace MyBB\Settings;
 
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\JoinClause;
-use MyBB\Settings\Contracts\Store as StoreContract;
 
-class DatabaseStore extends Store implements StoreContract
+class DatabaseStore extends Store
 {
 	/**
 	 * Database connection to use to load settings.

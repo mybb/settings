@@ -48,7 +48,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 	    });
 
 	    $this->app->bind('MyBB\Settings\Store', function(Application $app) {
-		    return $app->make('Mybb\Settings\Manager')->driver();
+		    return $app->make('MyBB\Settings\Manager')->driver();
 	    });
 
 	    $this->mergeConfigFrom(__DIR__ . '/config/settings.php', 'settings');

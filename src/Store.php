@@ -13,9 +13,8 @@
 namespace MyBB\Settings;
 
 use Illuminate\Contracts\Auth\Guard;
-use MyBB\Settings\Contracts\Store as StoreContract;
 
-abstract class Store implements StoreContract
+abstract class Store
 {
 	/**
 	 * Laravel guard instance, used to get user ID for user settings.
