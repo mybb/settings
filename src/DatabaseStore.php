@@ -98,14 +98,15 @@ class DatabaseStore extends Store
 		                              ->select([
 			                                       $this->_settingsTable . '.package',
 			                                       $this->_settingsTable . '.name',
-			                                       $this->_settingsValueTable . '.value'
+			                                       $this->_settingsValueTable . '.setting_id',
+			                                       $this->_settingsValueTable . '.value',
 		                                       ])
 		                              ->where('is_user_setting', '=', false)
 		                              ->get();
 
 
 		foreach ($settings as $setting) {
-			array_set($this->_settings, $setting->package . '.' . $setting->name, $setting->value);
+			array_set($this->_settings, $setting->package . '.' . $setting->name, ['package' => $setting->package, 'name' => $setting->name, 'setting_id' => $setting->setting_id, 'value' => $setting->value]);
 		}
 
 		return $this->_settings;
@@ -131,12 +132,13 @@ class DatabaseStore extends Store
 			                              ->select([
 				                                       $this->_settingsTable . '.package',
 				                                       $this->_settingsTable . '.name',
+				                                       $this->_settingsValueTable . '.setting_id',
 				                                       $this->_settingsValueTable . '.value'
 			                                       ])
 			                              ->get();
 
 			foreach ($settings as $setting) {
-				array_set($this->_userSettings, $setting->package . '.' . $setting->name, $setting->value);
+				array_set($this->_userSettings, $setting->package . '.' . $setting->name, ['package' => $setting->package, 'name' => $setting->name, 'setting_id' => $setting->setting_id, 'value' => $setting->value]);
 			}
 
 			return $this->_userSettings;

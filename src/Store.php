@@ -90,7 +90,7 @@ abstract class Store
 	 */
 	private function getFromMainSettings($key, $defaultValue = null, $package = 'mybb.core')
 	{
-		$val = array_get($this->_settings, $package . '.' . $key, $defaultValue);
+		$val = array_get($this->_settings, $package . '.' . $key . '.value', $defaultValue);
 
 		if ($val === null || $defaultValue === null) {
 			return $val;
@@ -110,7 +110,7 @@ abstract class Store
 	 */
 	private function getFromUserSettings($key, $defaultValue = null, $package = 'mybb.core')
 	{
-		$val = array_get($this->_userSettings, $package . '.' . $key, $defaultValue);
+		$val = array_get($this->_userSettings, $package . '.' . $key  . '.value', $defaultValue);
 
 		if ($val === null || $defaultValue === null) {
 			return $val;
@@ -138,10 +138,10 @@ abstract class Store
 		if ($useUserSettings) {
 			if (is_array($key)) {
 				foreach ($key as $settingKey => $settingVal) {
-					array_set($this->_userSettings, $package . '.' . $settingKey, $settingVal);
+					array_set($this->_userSettings, $package . '.' . $settingKey . '.value', $settingVal);
 				}
 			} else {
-				array_set($this->_userSettings, $package . '.' . $key, $value);
+				array_set($this->_userSettings, $package . '.' . $key . '.value', $value);
 			}
 		} else {
 			if (is_array($key)) {
@@ -149,7 +149,7 @@ abstract class Store
 					array_set($this->_settings, $package . '.' . $settingKey, $settingVal);
 				}
 			} else {
-				array_set($this->_settings, $package . '.' . $key, $value);
+				array_set($this->_settings, $package . '.' . $key . '.value', $value);
 			}
 		}
 	}
