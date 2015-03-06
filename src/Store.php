@@ -2,12 +2,12 @@
 /**
  * Abstract setting store, providing useful methods for other store implementations.
  *
- * @author MyBB Group
- * @version 2.0.0
- * @package mybb/settings
+ * @author    MyBB Group
+ * @version   2.0.0
+ * @package   mybb/settings
  * @copyright Copyright (c) 2014, MyBB Group
- * @license http://www.mybb.com/about/license GNU LESSER GENERAL PUBLIC LICENSE
- * @link http://www.mybb.com
+ * @license   http://www.mybb.com/about/license GNU LESSER GENERAL PUBLIC LICENSE
+ * @link      http://www.mybb.com
  */
 
 namespace MyBB\Settings;
@@ -18,6 +18,7 @@ abstract class Store
 {
 	/**
 	 * Laravel guard instance, used to get user ID for user settings.
+	 *
 	 * @var Guard
 	 */
 	protected $_guard;
@@ -75,10 +76,11 @@ abstract class Store
 	/**
 	 * Get a setting value.
 	 *
-	 * @param string $key          The name of the setting.
-	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
-	 * @param bool    $useUserSettings Whether to take into account user settings. User settings have priority over main settings. Defaults to true.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
+	 * @param string $key             The name of the setting.
+	 * @param mixed  $defaultValue    A default value to use if the setting does not exist. Defaults to null.
+	 * @param bool   $useUserSettings Whether to take into account user settings. User settings have priority over main
+	 *                                settings. Defaults to true.
+	 * @param string $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return mixed The value of the setting.
 	 */
@@ -98,7 +100,7 @@ abstract class Store
 	 *
 	 * @param string $key          The name of the setting.
 	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
+	 * @param string $package      The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return mixed The value of the setting.
 	 */
@@ -120,7 +122,7 @@ abstract class Store
 	 *
 	 * @param string $key          The name of the setting.
 	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
+	 * @param string $package      The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return mixed The value of the setting.
 	 */
@@ -140,11 +142,11 @@ abstract class Store
 	/**
 	 * Set a setting value.
 	 *
-	 * @param string|array $key    The name of the setting.
-	 * @param mixed  $value  The value for the setting.
-	 * @param bool    $useUserSettings Whether to set the setting as a user setting. Defaults to false.
+	 * @param string|array $key             The name of the setting.
+	 * @param mixed        $value           The value for the setting.
+	 * @param bool         $useUserSettings Whether to set the setting as a user setting. Defaults to false.
 	 *
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
+	 * @param string       $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return void
 	 */
@@ -183,7 +185,7 @@ abstract class Store
 	/**
 	 * Check if a setting exists.
 	 *
-	 * @param string       $key The name of the setting.
+	 * @param string $key     The name of the setting.
 	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return bool Whether the setting exists.
@@ -192,15 +194,16 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		return array_has($this->_userSettings, $package . '.' . $key) || array_has($this->_settings, $package . '.' . $key);
+		return array_has($this->_userSettings, $package . '.' . $key) || array_has($this->_settings,
+		                                                                           $package . '.' . $key);
 	}
 
 	/**
 	 * Flush all setting changes to the backing store.
 	 *
-	 * @param array $settings The setting data to flush to the backing store.
+	 * @param array $settings     The setting data to flush to the backing store.
 	 * @param array $userSettings The user setting data to flush to the backing store.
-	 * @param int $userId The ID of the user to save the user settings for.
+	 * @param int   $userId       The ID of the user to save the user settings for.
 	 *
 	 * @return bool Whether the settings were flushed correctly.
 	 */
@@ -230,7 +233,14 @@ abstract class Store
 	public function save()
 	{
 		if ($this->_modified) {
-			return $this->flush($this->_settings, $this->_userSettings);
+			$user = $this->_guard->user();
+			$userId = -1;
+
+			if ($user !== null) {
+				$userId = $user->getAuthIdentifier();
+			}
+
+			return $this->flush($this->_modifiedSettings, $this->_modifiedUserSettings, $userId);
 		}
 
 		return false;
