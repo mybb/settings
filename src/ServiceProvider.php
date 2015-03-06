@@ -31,6 +31,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     public function boot()
     {
 	    $this->publishes([__DIR__.'/config/settings.php' => config_path('settings.php')], 'config');
+	    $this->publishes([__DIR__.'/database/migrations/' => base_path('/database/migrations')], 'migrations');
     }
     /**
      * Register the service provider.
