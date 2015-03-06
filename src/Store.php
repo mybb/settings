@@ -96,7 +96,9 @@ abstract class Store
 			return $val;
 		}
 
-		return settype($val, gettype($defaultValue));
+		settype($val, gettype($defaultValue));
+
+		return $val;
 	}
 
 	/**
@@ -116,7 +118,9 @@ abstract class Store
 			return $val;
 		}
 
-		return settype($val, gettype($defaultValue));
+		settype($val, gettype($defaultValue));
+
+		return $val;
 	}
 
 	/**
