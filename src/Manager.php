@@ -37,6 +37,6 @@ class Manager extends \Illuminate\Support\Manager
 		$table = $this->app['config']->get('settings.settings_table');
 		$valuesTable = $this->app['config']->get('settings.setting_values_table');
 
-		return new DatabaseStore($connection, $table, $valuesTable);
+		return new DatabaseStore($this->app->make('Illuminate\Contracts\Auth\Guard'), $connection, $table, $valuesTable);
 	}
 }
