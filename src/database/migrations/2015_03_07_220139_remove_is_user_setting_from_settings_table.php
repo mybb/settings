@@ -14,8 +14,6 @@ class RemoveIsUserSettingFromSettingsTable extends Migration {
 	{
 		Schema::table('settings', function (Blueprint $table) {
 			$table->dropColumn('is_user_setting');
-
-			$table->unique(['setting_id', 'user_id']);
 		});
 
 		Schema::table('setting_values', function (Blueprint $table) {
