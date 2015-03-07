@@ -213,14 +213,16 @@ class DatabaseStore extends Store
 	protected function loadSettings()
 	{
 		$settings = $this->_connection->table($this->_settingsTable)
-		                              ->join($this->_settingsValueTable, $this->_settingsTable . '.id', '=',
-		                                     $this->_settingsValueTable . '.setting_id')
+		                              ->join($this->_settingsValueTable, function (JoinClause $join)
+		                              {
+			                              $join->on($this->_settingsTable . '.id', '=',
+			                                        $this->_settingsValueTable . '.setting_id')->whereNull($this->_settingsValueTable . '.user_id');
+		                              })
 		                              ->select([
 			                                       $this->_settingsTable . '.package',
 			                                       $this->_settingsTable . '.name',
 			                                       $this->_settingsValueTable . '.value',
 		                                       ])
-		                              ->where('is_user_setting', '=', false)
 		                              ->get();
 
 
@@ -248,8 +250,7 @@ class DatabaseStore extends Store
 			                              {
 				                              $join->on($this->_settingsTable . '.id', '=',
 				                                        $this->_settingsValueTable . '.setting_id')
-				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId)
-				                                   ->where($this->_settingsTable . '.is_user_setting', '=', true);
+				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId);
 			                              })
 			                              ->select([
 				                                       $this->_settingsTable . '.package',
