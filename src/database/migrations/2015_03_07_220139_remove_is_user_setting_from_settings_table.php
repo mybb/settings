@@ -17,6 +17,10 @@ class RemoveIsUserSettingFromSettingsTable extends Migration {
 
 			$table->unique(['setting_id', 'user_id']);
 		});
+
+		Schema::table('setting_values', function (Blueprint $table) {
+			$table->unique(['setting_id', 'user_id'], 'setting_values_setting_id_user_id_unique');
+		});
 	}
 
 	/**
@@ -28,6 +32,10 @@ class RemoveIsUserSettingFromSettingsTable extends Migration {
 	{
 		Schema::table('settings', function (Blueprint $table) {
 			$table->boolean('is_user_setting')->default(false);
+		});
+
+		Schema::table('setting_values', function (Blueprint $table) {
+			$table->dropUnique('setting_values_setting_id_user_id_unique');
 		});
 	}
 
