@@ -90,10 +90,14 @@ abstract class Store
 
 		if($useUserSettings && array_has($this->_userSettings, $package . '.' . $key))
 		{
-			return $this->getFromUserSettings($key, $defaultValue, $package);
+			$val = $this->getFromUserSettings($key, $defaultValue, $package);
+		}
+		else
+		{
+			$val = $this->getFromMainSettings($key, $defaultValue, $package);
 		}
 
-		return $this->getFromMainSettings($key, $defaultValue, $package);
+		return $this->determineValue($val, $defaultValue);
 	}
 
 	/**
@@ -107,16 +111,7 @@ abstract class Store
 	 */
 	private function getFromMainSettings($key, $defaultValue = null, $package = 'mybb/core')
 	{
-		$val = array_get($this->_settings, $package . '.' . $key, $defaultValue);
-
-		if($val === null || $defaultValue === null)
-		{
-			return $val;
-		}
-
-		settype($val, gettype($defaultValue));
-
-		return $val;
+		return array_get($this->_settings, $package . '.' . $key, $defaultValue);
 	}
 
 	/**
@@ -130,16 +125,31 @@ abstract class Store
 	 */
 	private function getFromUserSettings($key, $defaultValue = null, $package = 'mybb/core')
 	{
-		$val = array_get($this->_userSettings, $package . '.' . $key, $defaultValue);
+		return array_get($this->_userSettings, $package . '.' . $key, $defaultValue);
+	}
 
-		if($val === null || $defaultValue === null)
+	/**
+	 * Determine the return value from an actual value and default value.
+	 *
+	 * @param mixed $value        The actual value.
+	 * @param mixed $defaultValue The default value.
+	 *
+	 * @return mixed The determined value. If both $value and $defaultValue are not null, $value will be typecast to
+	 *               the same type as $defaultValue.
+	 */
+	private function determineValue($value, $defaultValue)
+	{
+		if($value === null)
 		{
-			return $val;
+			return $defaultValue;
 		}
 
-		settype($val, gettype($defaultValue));
+		if($defaultValue !== null)
+		{
+			settype($value, gettype($defaultValue));
+		}
 
-		return $val;
+		return $value;
 	}
 
 	/**
@@ -168,13 +178,15 @@ abstract class Store
 
 					$this->_modifiedUserSettings[$package . '.' . $settingKey] = $settingVal;
 				}
-			} else
+			}
+			else
 			{
 				array_set($this->_userSettings, $package . '.' . $key, $value);
 
 				$this->_modifiedUserSettings[$package . '.' . $key] = $value;
 			}
-		} else
+		}
+		else
 		{
 			if(is_array($key))
 			{
@@ -184,7 +196,8 @@ abstract class Store
 
 					$this->_modifiedSettings[$package . '.' . $settingKey] = $settingVal;
 				}
-			} else
+			}
+			else
 			{
 				array_set($this->_settings, $package . '.' . $key, $value);
 
