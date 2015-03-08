@@ -33,7 +33,9 @@ class RemoveIsUserSettingFromSettingsTable extends Migration {
 		});
 
 		Schema::table('setting_values', function (Blueprint $table) {
+			$table->dropForeign('setting_values_setting_id_foreign');
 			$table->dropUnique('setting_values_setting_id_user_id_unique');
+			$table->foreign('setting_id')->references('id')->on('settings')->onDelete('cascade');
 		});
 	}
 
