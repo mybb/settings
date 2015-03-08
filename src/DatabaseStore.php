@@ -82,12 +82,12 @@ class DatabaseStore extends Store
 				$modifiedSettingNames[implode('.', $keyParts)] = $val;
 			});
 
-			$existingKeys = $this->_connection->table($this->_settingsTable)->where('is_user_setting', '=', false)
+			$existingKeys = $this->_connection->table($this->_settingsTable)
 			                                  ->join($this->_settingsValueTable,
 				                                  function (JoinClause $join) use ($userId)
 				                                  {
 					                                  $join->on($this->_settingsTable . '.id', '=',
-					                                            $this->_settingsValueTable . '.setting_id');
+					                                            $this->_settingsValueTable . '.setting_id')->whereNull($this->_settingsValueTable . '.user_id');
 				                                  })->whereIn('name', array_keys($modifiedSettingNames))
 			                                  ->select([
 				                                           $this->_settingsTable . '.package',
@@ -122,7 +122,6 @@ class DatabaseStore extends Store
 				$id = $this->_connection->table($this->_settingsTable)->insertGetId([
 					                                                                    'name' => $settingName,
 					                                                                    'package' => $package,
-					                                                                    'is_user_setting' => false,
 				                                                                    ]);
 
 				$this->_connection->table($this->_settingsValueTable)->insert([
@@ -152,7 +151,7 @@ class DatabaseStore extends Store
 			$modifiedSettingNames[implode('.', $keyParts)] = $val;
 		});
 
-		$existingKeys = $this->_connection->table($this->_settingsTable)->where('is_user_setting', '=', true)
+		$existingKeys = $this->_connection->table($this->_settingsTable)
 		                                  ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId)
 		                                  {
 			                                  $join->on($this->_settingsTable . '.id', '=',
@@ -192,7 +191,6 @@ class DatabaseStore extends Store
 			$id = $this->_connection->table($this->_settingsTable)->insertGetId([
 				                                                                    'name' => $settingName,
 				                                                                    'package' => $package,
-				                                                                    'is_user_setting' => true,
 			                                                                    ]);
 
 			$this->_connection->table($this->_settingsValueTable)->insert([
