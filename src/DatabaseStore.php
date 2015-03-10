@@ -188,10 +188,16 @@ class DatabaseStore extends Store
 			array_shift($keyParts);
 			$settingName = implode('.', $keyParts);
 
-			$id = $this->_connection->table($this->_settingsTable)->insertGetId([
-				                                                                    'name' => $settingName,
-				                                                                    'package' => $package,
-			                                                                    ]);
+			$id = $this->_connection->table($this->_settingsTable)->where('name', '=', $settingName)
+				->where('package', '=', $package)->pluck('id');
+
+			if($id === null)
+			{
+				$id = $this->_connection->table($this->_settingsTable)->insertGetId([
+					'name' => $settingName,
+					'package' => $package,
+				]);
+			}
 
 			$this->_connection->table($this->_settingsValueTable)->insert([
 				                                                              'setting_id' => $id,
