@@ -169,9 +169,12 @@ class DatabaseStore extends Store
 				}
 			} else {
 				$settingEntry = $this->settingsModel->where('name', '=', $setting['name'])->where('package', '=', $setting['package'])->first();
+
 				$settingEntry->values()->delete();
 				$settingEntry->delete();
 			}
+
+			unset($this->deletedSettings[$key]);
 		}
 	}
 }

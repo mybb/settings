@@ -162,6 +162,11 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
+		if ($value === null) {
+			$this->remove($key, $useUserSettings, $package);
+			return;
+		}
+
 		$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
 
 		if (isset($this->settings[$package][$key])) { // Updating setting or adding user/default value to existing setting
@@ -235,11 +240,15 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		$this->deletedSettings[] = [
-			'package' => $package,
-		    'name' => $key,
-		    'just_user' => (bool) $dropJustUserSetting,
-		];
+		if ($this->has($key, $package)) {
+			$this->modified = true;
+
+			$this->deletedSettings[] = [
+				'package' => $package,
+				'name' => $key,
+				'just_user' => (bool) $dropJustUserSetting,
+			];
+		}
 	}
 
 	/**
