@@ -16,61 +16,63 @@ use Illuminate\Contracts\Auth\Guard;
 
 abstract class Store
 {
+	const DEFAULT_SETTING_KEY = 'default';
+	const USER_SETTING_KEY    = 'user';
+
 	/**
 	 * Laravel guard instance, used to get user ID for user settings.
 	 *
 	 * @var Guard
 	 */
-	protected $_guard;
+	protected $guard;
 
 	/**
 	 * An array of the loaded settings.
 	 *
 	 * @var array
 	 */
-	protected $_settings = [];
-
-	/**
-	 * An array of the loaded user settings.
-	 *
-	 * @var array
-	 */
-	protected $_userSettings = [];
+	protected $settings = [];
 
 	/**
 	 * Whether the settings have been loaded yet.
 	 *
 	 * @var bool
 	 */
-	protected $_hasLoaded = false;
-
+	protected $hasLoaded = false;
 	/**
 	 * Whether the settings have been modified at all.
 	 *
 	 * @var bool
 	 */
-	protected $_modified = false;
-
+	protected $modified = false;
 	/**
-	 * A list of modified setting keys.
+	 * A list of modified settings.
 	 *
 	 * @var array
 	 */
-	protected $_modifiedSettings = [];
-
+	protected $modifiedSettings = [
+		self::DEFAULT_SETTING_KEY => [],
+		self::USER_SETTING_KEY => [],
+	];
 	/**
-	 * A list of modified user setting keys.
+	 * A list of created settings.
 	 *
 	 * @var array
 	 */
-	protected $_modifiedUserSettings = [];
+	protected $createdSettings = [];
+	/**
+	 * A list of deleted settings.
+	 *
+	 * @var array
+	 */
+	protected $deletedSettings = [];
 
 	/**
 	 * @param Guard $guard Laravel guard instance, used to get user settings.
 	 */
 	public function __construct(Guard $guard)
 	{
-		$this->_guard = $guard;
+		$this->guard = $guard;
 	}
 
 	/**
@@ -88,44 +90,23 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		if($useUserSettings && array_has($this->_userSettings, $package . '.' . $key))
+		$val = null;
+
+		if(isset($this->settings[$package][$key]))
 		{
-			$val = $this->getFromUserSettings($key, $defaultValue, $package);
-		}
-		else
-		{
-			$val = $this->getFromMainSettings($key, $defaultValue, $package);
+			$setting = $this->settings[$package][$key];
+
+			if($useUserSettings && isset($setting[static::USER_SETTING_KEY]))
+			{
+				$val = $setting[static::USER_SETTING_KEY]['value'];
+			}
+			else
+			{
+				$val = $setting[static::DEFAULT_SETTING_KEY]['value'];
+			}
 		}
 
 		return $this->determineValue($val, $defaultValue);
-	}
-
-	/**
-	 * Get a setting value from the main setting store.
-	 *
-	 * @param string $key          The name of the setting.
-	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
-	 * @param string $package      The name of the package the setting belongs to. Defaults to 'mybb/core'.
-	 *
-	 * @return mixed The value of the setting.
-	 */
-	private function getFromMainSettings($key, $defaultValue = null, $package = 'mybb/core')
-	{
-		return array_get($this->_settings, $package . '.' . $key, $defaultValue);
-	}
-
-	/**
-	 * Get a setting value from the user setting store.
-	 *
-	 * @param string $key          The name of the setting.
-	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
-	 * @param string $package      The name of the package the setting belongs to. Defaults to 'mybb/core'.
-	 *
-	 * @return mixed The value of the setting.
-	 */
-	private function getFromUserSettings($key, $defaultValue = null, $package = 'mybb/core')
-	{
-		return array_get($this->_userSettings, $package . '.' . $key, $defaultValue);
 	}
 
 	/**
@@ -155,54 +136,36 @@ abstract class Store
 	/**
 	 * Set a setting value.
 	 *
-	 * @param string|array $key             The name of the setting.
-	 * @param mixed        $value           The value for the setting.
-	 * @param bool         $useUserSettings Whether to set the setting as a user setting. Defaults to false.
+	 * @param string $key             The name of the setting.
+	 * @param mixed  $value           The value for the setting.
+	 * @param bool   $useUserSettings Whether to set the setting as a user setting. Defaults to false.
 	 *
-	 * @param string       $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
+	 * @param string $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return void
 	 */
 	public function set($key, $value, $useUserSettings = false, $package = 'mybb/core')
 	{
 		$this->assertLoaded();
-		$this->_modified = true;
+		$this->modified = true;
 
-		if($useUserSettings)
-		{
-			if(is_array($key))
-			{
-				foreach($key as $settingKey => $settingVal)
-				{
-					array_set($this->_userSettings, $package . '.' . $settingKey, $settingVal);
+		$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
 
-					$this->_modifiedUserSettings[$package . '.' . $settingKey] = $settingVal;
-				}
-			}
-			else
-			{
-				array_set($this->_userSettings, $package . '.' . $key, $value);
+		if(isset($this->settings[$package][$key][$settingType]))
+		{ // Updating setting
+			$this->settings[$package][$key][$settingType]['value'] = $value;
 
-				$this->_modifiedUserSettings[$package . '.' . $key] = $value;
-			}
+			$modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
 		}
 		else
-		{
-			if(is_array($key))
-			{
-				foreach($key as $settingKey => $settingVal)
-				{
-					array_set($this->_settings, $package . '.' . $settingKey, $settingVal);
+		{ // Creating setting
+			$this->settings[$package][$key][$settingType] = [
+				'package' => $package,
+				'name' => $key,
+				'value' => $value,
+			];
 
-					$this->_modifiedSettings[$package . '.' . $settingKey] = $settingVal;
-				}
-			}
-			else
-			{
-				array_set($this->_settings, $package . '.' . $key, $value);
-
-				$this->_modifiedSettings[$package . '.' . $key] = $value;
-			}
+			$this->createdSettings[$settingType] = $this->settings[$package][$key][$settingType];
 		}
 	}
 
@@ -218,20 +181,17 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		return array_has($this->_userSettings, $package . '.' . $key) || array_has($this->_settings,
-		                                                                           $package . '.' . $key);
+		return isset($this->settings[$package][$key]);
 	}
 
 	/**
 	 * Flush all setting changes to the backing store.
 	 *
-	 * @param array $settings     The setting data to flush to the backing store.
-	 * @param array $userSettings The user setting data to flush to the backing store.
-	 * @param int   $userId       The ID of the user to save the user settings for.
+	 * @param int $userId The ID of the user to save the user settings for.
 	 *
 	 * @return bool Whether the settings were flushed correctly.
 	 */
-	protected abstract function flush(array $settings, array $userSettings, $userId = -1);
+	protected abstract function flush($userId = -1);
 
 	/**
 	 * Load all settings into the setting store.
@@ -241,24 +201,15 @@ abstract class Store
 	protected abstract function loadSettings();
 
 	/**
-	 * Load all of the user settings into the setting store.
-	 *
-	 * @param int $userId The ID of the user to load the user settings for.
-	 *
-	 * @return array An array of all of the loaded user settings.
-	 */
-	protected abstract function loadUserSettings($userId = -1);
-
-	/**
 	 * Save any changes to the settings.
 	 *
 	 * @return bool Whether the settings were saved correctly.
 	 */
 	public function save()
 	{
-		if($this->_modified)
+		if($this->modified)
 		{
-			$user = $this->_guard->user();
+			$user = $this->guard->user();
 			$userId = -1;
 
 			if($user !== null)
@@ -266,7 +217,7 @@ abstract class Store
 				$userId = $user->getAuthIdentifier();
 			}
 
-			return $this->flush($this->_modifiedSettings, $this->_modifiedUserSettings, $userId);
+			return $this->flush($userId);
 		}
 
 		return false;
@@ -277,17 +228,11 @@ abstract class Store
 	 */
 	protected function assertLoaded()
 	{
-		if(!$this->_hasLoaded)
+		if(!$this->hasLoaded)
 		{
-			$this->_settings = $this->loadSettings();
-			$user = $this->_guard->user();
+			$this->settings = $this->loadSettings();
 
-			if($user !== null)
-			{
-				$this->_userSettings = $this->loadUserSettings($user->getAuthIdentifier());
-			}
-
-			$this->_hasLoaded = true;
+			$this->hasLoaded = true;
 		}
 	}
 
@@ -300,6 +245,6 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		return array_merge($this->_settings, $this->_userSettings);
+		return array_merge($this->settings, $this->userSettings);
 	}
 }

@@ -14,7 +14,8 @@ namespace MyBB\Settings;
 
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Cache\Repository;
-use Illuminate\Database\ConnectionInterface;
+use MyBB\Settings\Models\Setting;
+use MyBB\Settings\Models\SettingValue;
 
 class CacheStore extends DatabaseStore
 {
@@ -32,22 +33,20 @@ class CacheStore extends DatabaseStore
 	protected $_cacheName;
 
 	/**
-	 * @param Guard               $guard              Laravel guard instance, used to get user settings.
-	 * @param ConnectionInterface $connection         Database connection to use to manage settings.
-	 * @param string              $settingsTable      The name of the main settings table.
-	 * @param string              $settingsValueTable The name of the setting values table.
-	 * @param Repository          $cache              Cache repository for settings.
-	 * @param string              $cacheName          The name of the cache to use.
+	 * @param Guard        $guard             Laravel guard instance, used to get user settings.
+	 * @param Setting      $settingsModel     Settings model instance.
+	 * @param SettingValue $settingValueModel Setting value model instance.
+	 * @param Repository   $cache             Cache repository for settings.
+	 * @param string       $cacheName         The name of the cache to use.
 	 */
 	public function __construct(
 		Guard $guard,
-		ConnectionInterface $connection,
-		$settingsTable = 'settings',
-		$settingsValueTable = 'setting_values',
+		Setting $settingsModel,
+		SettingValue $settingValueModel,
 		Repository $cache,
 		$cacheName = 'mybb.core.settings'
 	) {
-		parent::__construct($guard, $connection, $settingsTable, $settingsValueTable);
+		parent::__construct($guard, $settingsModel, $settingValueModel);
 		$this->_cache = $cache;
 		$this->_cacheName = $cacheName;
 	}
@@ -55,15 +54,13 @@ class CacheStore extends DatabaseStore
 	/**
 	 * Flush all setting changes to the backing store.
 	 *
-	 * @param array $settings     The setting data to flush to the backing store.
-	 * @param array $userSettings The user setting data to flush to the backing store.
-	 * @param int   $userId       The ID of the user to save the user settings for.
+	 * @param int $userId The ID of the user to save the user settings for.
 	 *
 	 * @return bool Whether the settings were flushed correctly.
 	 */
-	protected function flush(array $settings, array $userSettings, $userId = -1)
+	protected function flush($userId = -1)
 	{
-		parent::flush($settings, $userSettings, $userId);
+		parent::flush($userId);
 
 		$this->_cache->forget($this->_cacheName);
 	}
@@ -83,17 +80,5 @@ class CacheStore extends DatabaseStore
 		}
 
 		return $settings;
-	}
-
-	/**
-	 * Load all of the user settings into the setting store.
-	 *
-	 * @param int $userId The ID of the user to load the user settings for.
-	 *
-	 * @return array An array of all of the loaded user settings.
-	 */
-	protected function loadUserSettings($userId = -1)
-	{
-		return parent::loadUserSettings($userId);
 	}
 }

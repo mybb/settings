@@ -13,200 +13,52 @@
 namespace MyBB\Settings;
 
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\JoinClause;
+use MyBB\Settings\Models\Setting;
+use MyBB\Settings\Models\SettingValue;
 
 class DatabaseStore extends Store
 {
 	/**
-	 * Database connection to use to load settings.
+	 * Settings model.
 	 *
-	 * @var ConnectionInterface $connection
+	 * @var Setting $settingsModel
 	 */
-	private $_connection;
+	private $settingsModel;
 	/**
-	 * The name of the table to load settings from.
+	 * Setting value model.
 	 *
-	 * @var string $_settingsTable
+	 * @var SettingValue $settingValueModel
 	 */
-	private $_settingsTable;
-	/**
-	 * The name of the table to load setting values from.
-	 *
-	 * @var string $_settingsValueTable
-	 */
-	private $_settingsValueTable;
+	private $settingValueModel;
 
 	/**
-	 * @param Guard               $guard              Laravel guard instance, used to get user settings.
-	 * @param ConnectionInterface $connection         Database connection to use to manage settings.
-	 * @param string              $settingsTable      The name of the main settings table.
-	 * @param string              $settingsValueTable The name of the setting values table.
+	 * @param Guard        $guard             Laravel guard instance, used to get user settings.
+	 * @param Setting      $settingsModel     Settings model instance.
+	 * @param SettingValue $settingValueModel Setting value model instance.
 	 */
 	public function __construct(
 		Guard $guard,
-		ConnectionInterface $connection,
-		$settingsTable = 'settings',
-		$settingsValueTable = 'setting_values'
+		Setting $settingsModel,
+		SettingValue $settingValueModel
 	) {
 		parent::__construct($guard);
 
-		$this->_connection = $connection;
-		$this->_settingsTable = $settingsTable;
-		$this->_settingsValueTable = $settingsValueTable;
+		$this->settingsModel = $settingsModel;
+		$this->settingValueModel = $settingValueModel;
 	}
 
 	/**
 	 * Flush all setting changes to the backing store.
 	 *
-	 * @param array $settings     The setting data to flush to the backing store.
-	 * @param array $userSettings The user setting data to flush to the backing store.
-	 * @param int   $userId       The ID of the user to save the user settings for.
+	 * @param int $userId The ID of the user to save the user settings for.
 	 *
 	 * @return bool Whether the settings were flushed correctly.
 	 */
-	protected function flush(array $settings, array $userSettings, $userId = -1)
+	protected function flush($userId = -1)
 	{
-		if($userId > 0 && !empty($userSettings))
-		{
-			$this->flushUserSettings($userSettings, $userId);
-		}
-
-		if(!empty($settings))
-		{
-			$modifiedSettingNames = [];
-			array_walk($settings, function ($val, $key) use (&$modifiedSettingNames)
-			{
-				$keyParts = explode('.', $key);
-				array_shift($keyParts);
-				$modifiedSettingNames[implode('.', $keyParts)] = $val;
-			});
-
-			$existingKeys = $this->_connection->table($this->_settingsTable)
-			                                  ->join($this->_settingsValueTable,
-				                                  function (JoinClause $join) use ($userId)
-				                                  {
-					                                  $join->on($this->_settingsTable . '.id', '=',
-					                                            $this->_settingsValueTable . '.setting_id')->whereNull($this->_settingsValueTable . '.user_id');
-				                                  })->whereIn('name', array_keys($modifiedSettingNames))
-			                                  ->select([
-				                                           $this->_settingsTable . '.package',
-				                                           $this->_settingsTable . '.name',
-				                                           $this->_settingsValueTable . '.value',
-				                                           $this->_settingsTable . '.id'
-			                                           ])->get();
-
-			foreach($existingKeys as $existing)
-			{
-				if(isset($settings[$existing->package . '.' . $existing->name]))
-				{
-					if($settings[$existing->package . '.' . $existing->name] != $existing->value)
-					{
-						$this->_connection->table($this->_settingsValueTable)->where('setting_id', '=', $existing->id)
-						                  ->update([
-							                           'value' => $settings[$existing->package . '.' . $existing->name],
-						                           ]);
-					}
-
-					unset($settings[$existing->package . '.' . $existing->name]);
-				}
-			}
-
-			foreach($settings as $key => $val)
-			{
-				$keyParts = explode('.', $key);
-				$package = $keyParts[0];
-				array_shift($keyParts);
-				$settingName = implode('.', $keyParts);
-
-				$id = $this->_connection->table($this->_settingsTable)->insertGetId([
-					                                                                    'name' => $settingName,
-					                                                                    'package' => $package,
-				                                                                    ]);
-
-				$this->_connection->table($this->_settingsValueTable)->insert([
-					                                                              'setting_id' => $id,
-					                                                              'user_id' => null,
-					                                                              'value' => $val,
-				                                                              ]
-
-				);
-			}
-		}
-	}
-
-	/**
-	 * Flush the user settings to the database.
-	 *
-	 * @param array $userSettings The user settings to flush.
-	 * @param int   $userId       The ID of the user to flush the settings for.
-	 */
-	private function flushUserSettings(array $userSettings, $userId = -1)
-	{
-		$modifiedSettingNames = [];
-		array_walk($userSettings, function ($val, $key) use (&$modifiedSettingNames)
-		{
-			$keyParts = explode('.', $key);
-			array_shift($keyParts);
-			$modifiedSettingNames[implode('.', $keyParts)] = $val;
-		});
-
-		$existingKeys = $this->_connection->table($this->_settingsTable)
-		                                  ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId)
-		                                  {
-			                                  $join->on($this->_settingsTable . '.id', '=',
-			                                            $this->_settingsValueTable . '.setting_id')
-			                                       ->where($this->_settingsValueTable . '.user_id', '=', $userId);
-		                                  })->whereIn('name', array_keys($modifiedSettingNames))
-		                                  ->select([
-			                                           $this->_settingsTable . '.package',
-			                                           $this->_settingsTable . '.name',
-			                                           $this->_settingsValueTable . '.value',
-			                                           $this->_settingsTable . '.id'
-		                                           ])->get();
-
-		foreach($existingKeys as $existing)
-		{
-			if(isset($userSettings[$existing->package . '.' . $existing->name]))
-			{
-				if($userSettings[$existing->package . '.' . $existing->name] != $existing->value)
-				{
-					$this->_connection->table($this->_settingsValueTable)->where('setting_id', '=', $existing->id)
-					                  ->update([
-						                           'value' => $userSettings[$existing->package . '.' . $existing->name],
-					                           ]);
-				}
-
-				unset($userSettings[$existing->package . '.' . $existing->name]);
-			}
-		}
-
-		foreach($userSettings as $key => $val)
-		{
-			$keyParts = explode('.', $key);
-			$package = $keyParts[0];
-			array_shift($keyParts);
-			$settingName = implode('.', $keyParts);
-
-			$id = $this->_connection->table($this->_settingsTable)->where('name', '=', $settingName)
-				->where('package', '=', $package)->pluck('id');
-
-			if($id === null)
-			{
-				$id = $this->_connection->table($this->_settingsTable)->insertGetId([
-					'name' => $settingName,
-					'package' => $package,
-				]);
-			}
-
-			$this->_connection->table($this->_settingsValueTable)->insert([
-				                                                              'setting_id' => $id,
-				                                                              'user_id' => $userId,
-				                                                              'value' => $val,
-			                                                              ]
-
-			);
-		}
+		$this->handleUpdatedSettings();
+		$this->handleCreatedSettings();
 	}
 
 	/**
@@ -216,61 +68,73 @@ class DatabaseStore extends Store
 	 */
 	protected function loadSettings()
 	{
-		$settings = $this->_connection->table($this->_settingsTable)
-		                              ->join($this->_settingsValueTable, function (JoinClause $join)
-		                              {
-			                              $join->on($this->_settingsTable . '.id', '=',
-			                                        $this->_settingsValueTable . '.setting_id')->whereNull($this->_settingsValueTable . '.user_id');
-		                              })
-		                              ->select([
-			                                       $this->_settingsTable . '.package',
-			                                       $this->_settingsTable . '.name',
-			                                       $this->_settingsValueTable . '.value',
-		                                       ])
-		                              ->get();
+		$settings = $this->settingsModel->join('setting_values', function (JoinClause $query)
+		{
+			$query->on('settings.id', '=', 'setting_values.setting_id');
 
+			if(($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0)
+			{
+				$query->where('user_id', '=', $user->getAuthIdentifier())->orWhereNull('user_id');
+			}
+			else
+			{
+				$query->whereNull('user_id');
+			}
+		})->get();
 
 		foreach($settings as $setting)
 		{
-			array_set($this->_settings, $setting->package . '.' . $setting->name, $setting->value);
+			$settingType = ($setting->user_id === null) ? Store::DEFAULT_SETTING_KEY : Store::USER_SETTING_KEY;
+
+			$this->settings[$setting->package][$setting->name][$settingType] = [
+				'id' => $setting->setting_id,
+				'value' => $setting->value,
+				'package' => $setting->package,
+				'name' => $setting->name,
+			];
 		}
 
-		return $this->_settings;
+		return $this->settings;
 	}
 
-	/**
-	 * Load all of the user settings into the setting store.
-	 *
-	 * @param int $userId The ID of the user to load the user settings for.
-	 *
-	 * @return array An array of all of the loaded user settings.
-	 */
-	protected function loadUserSettings($userId = -1)
+	private function handleUpdatedSettings()
 	{
-		if($userId > 0)
+		foreach($this->modifiedSettings as $id => $setting)
 		{
-			$settings = $this->_connection->table($this->_settingsTable)
-			                              ->join($this->_settingsValueTable, function (JoinClause $join) use ($userId)
-			                              {
-				                              $join->on($this->_settingsTable . '.id', '=',
-				                                        $this->_settingsValueTable . '.setting_id')
-				                                   ->where($this->_settingsValueTable . '.user_id', '=', $userId);
-			                              })
-			                              ->select([
-				                                       $this->_settingsTable . '.package',
-				                                       $this->_settingsTable . '.name',
-				                                       $this->_settingsValueTable . '.value'
-			                                       ])
-			                              ->get();
+			$this->settingValueModel->where('setting_id', '=', $id)->update(['value' => $setting['value']]);
+		}
+	}
 
-			foreach($settings as $setting)
-			{
-				array_set($this->_userSettings, $setting->package . '.' . $setting->name, $setting->value);
-			}
+	private function handleCreatedSettings()
+	{
+		$this->createdSettings = array_unique($this->createdSettings);
 
-			return $this->_userSettings;
+		foreach($this->createdSettings[static::DEFAULT_SETTING_KEY] as $createdDefaultSetting)
+		{
+			$setting = $this->settingsModel->create([
+				                                        'package' => $createdDefaultSetting['package'],
+				                                        'name' => $createdDefaultSetting['name'],
+			                                        ]);
+
+			$setting->values()->create(['value' => $createdDefaultSetting['value']]);
 		}
 
-		return [];
+		if(($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0)
+		{
+			foreach($this->createdSettings[static::USER_SETTING_KEY] as $createdDefaultSetting)
+			{
+				$setting = $this->settingsModel->create([
+					                                        'package' => $createdDefaultSetting['package'],
+					                                        'name' => $createdDefaultSetting['name'],
+				                                        ]);
+
+				$setting->values()->create([
+					                           'value' => $createdDefaultSetting['value'],
+					                           'user_id' => $user->getAuthIdentifier()
+				                           ]);
+			}
+		}
+
+
 	}
 }
