@@ -32,13 +32,9 @@ class Manager extends \Illuminate\Support\Manager
 	 */
 	public function createDatabaseDriver()
 	{
-		$connection = $this->app['db']->connection();
-
-		$table = $this->app['config']->get('settings.settings_table');
-		$valuesTable = $this->app['config']->get('settings.setting_values_table');
-
-		return new DatabaseStore($this->app->make('Illuminate\Contracts\Auth\Guard'), $connection, $table,
-		                         $valuesTable);
+		return new DatabaseStore($this->app->make('Illuminate\Contracts\Auth\Guard'),
+		                         $this->app->make('MyBB\Settings\Models\Setting'),
+		                         $this->app->make('MyBB\Settings\Models\SettingValue'));
 	}
 
 	/**
@@ -48,15 +44,11 @@ class Manager extends \Illuminate\Support\Manager
 	 */
 	public function createCacheDriver()
 	{
-		$connection = $this->app['db']->connection();
-
-		$table = $this->app['config']->get('settings.settings_table');
-		$valuesTable = $this->app['config']->get('settings.setting_values_table');
-
 		$cache = $this->app->make('Illuminate\Contracts\Cache\Repository');
 		$cacheName = $this->app['config']->get('settings.settings_cache_name');
 
-		return new CacheStore($this->app->make('Illuminate\Contracts\Auth\Guard'), $connection, $table,
-		                      $valuesTable, $cache, $cacheName);
+		return new CacheStore($this->app->make('Illuminate\Contracts\Auth\Guard'),
+		                      $this->app->make('MyBB\Settings\Models\Setting'),
+		                      $this->app->make('MyBB\Settings\Models\SettingValue'), $cache, $cacheName);
 	}
 }
