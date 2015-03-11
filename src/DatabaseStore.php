@@ -13,7 +13,6 @@
 namespace MyBB\Settings;
 
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Database\Query\JoinClause;
 use MyBB\Settings\Models\Setting;
 use MyBB\Settings\Models\SettingValue;
 
@@ -68,22 +67,17 @@ class DatabaseStore extends Store
 	 */
 	protected function loadSettings()
 	{
-		$settings = $this->settingsModel->join('setting_values', function (JoinClause $query)
-		{
-			$query->on('settings.id', '=', 'setting_values.setting_id');
+		$settings = $this->settingsModel->join('setting_values', 'setting_values.setting_id', '=', 'settings.id');
 
-			if(($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0)
-			{
-				$query->where('user_id', '=', $user->getAuthIdentifier())->orWhereNull('user_id');
-			}
-			else
-			{
-				$query->whereNull('user_id');
-			}
-		})->get();
+		if (($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0) {
+			$settings = $settings->where('user_id', '=', $user->getAuthIdentifier())->orWhereNull('user_id');
+		} else {
+			$settings = $settings->whereNull('user_id');
+		}
 
-		foreach($settings as $setting)
-		{
+		$settings = $settings->get();
+
+		foreach ($settings as $setting) {
 			$settingType = ($setting->user_id === null) ? Store::DEFAULT_SETTING_KEY : Store::USER_SETTING_KEY;
 
 			$this->settings[$setting->package][$setting->name][$settingType] = [
@@ -97,44 +91,42 @@ class DatabaseStore extends Store
 		return $this->settings;
 	}
 
+	/**
+	 * Update existing settings with new setting values.
+	 */
 	private function handleUpdatedSettings()
 	{
-		foreach($this->modifiedSettings as $id => $setting)
-		{
+		foreach ($this->modifiedSettings as $id => $setting) {
 			$this->settingValueModel->where('setting_id', '=', $id)->update(['value' => $setting['value']]);
 		}
 	}
 
+	/**
+	 * Create any new settings that have been created.
+	 */
 	private function handleCreatedSettings()
 	{
-		$this->createdSettings = array_unique($this->createdSettings);
-
-		foreach($this->createdSettings[static::DEFAULT_SETTING_KEY] as $createdDefaultSetting)
-		{
+		foreach ($this->createdSettings[static::DEFAULT_SETTING_KEY] as $createdDefaultSetting) {
 			$setting = $this->settingsModel->create([
-				                                        'package' => $createdDefaultSetting['package'],
-				                                        'name' => $createdDefaultSetting['name'],
-			                                        ]);
+				'package' => $createdDefaultSetting['package'],
+				'name' => $createdDefaultSetting['name'],
+			]);
 
 			$setting->values()->create(['value' => $createdDefaultSetting['value']]);
 		}
 
-		if(($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0)
-		{
-			foreach($this->createdSettings[static::USER_SETTING_KEY] as $createdDefaultSetting)
-			{
+		if (($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0) {
+			foreach ($this->createdSettings[static::USER_SETTING_KEY] as $createdDefaultSetting) {
 				$setting = $this->settingsModel->create([
-					                                        'package' => $createdDefaultSetting['package'],
-					                                        'name' => $createdDefaultSetting['name'],
-				                                        ]);
+					'package' => $createdDefaultSetting['package'],
+					'name' => $createdDefaultSetting['name'],
+				]);
 
 				$setting->values()->create([
-					                           'value' => $createdDefaultSetting['value'],
-					                           'user_id' => $user->getAuthIdentifier()
-				                           ]);
+					'value' => $createdDefaultSetting['value'],
+					'user_id' => $user->getAuthIdentifier()
+				]);
 			}
 		}
-
-
 	}
 }

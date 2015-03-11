@@ -92,22 +92,37 @@ abstract class Store
 
 		$val = null;
 
-		if(isset($this->settings[$package][$key]))
-		{
+		if (isset($this->settings[$package][$key])) {
 			$setting = $this->settings[$package][$key];
 
-			if($useUserSettings && isset($setting[static::USER_SETTING_KEY]))
-			{
+			if ($useUserSettings && isset($setting[static::USER_SETTING_KEY])) {
 				$val = $setting[static::USER_SETTING_KEY]['value'];
-			}
-			else
-			{
+			} else {
 				$val = $setting[static::DEFAULT_SETTING_KEY]['value'];
 			}
 		}
 
 		return $this->determineValue($val, $defaultValue);
 	}
+
+	/**
+	 * Ensures settings have been loaded by the store. If not, they are loaded from the backend.
+	 */
+	protected function assertLoaded()
+	{
+		if (!$this->hasLoaded) {
+			$this->settings = $this->loadSettings();
+
+			$this->hasLoaded = true;
+		}
+	}
+
+	/**
+	 * Load all settings into the setting store.
+	 *
+	 * @return array An array of all of the loaded settings.
+	 */
+	protected abstract function loadSettings();
 
 	/**
 	 * Determine the return value from an actual value and default value.
@@ -120,13 +135,11 @@ abstract class Store
 	 */
 	private function determineValue($value, $defaultValue)
 	{
-		if($value === null)
-		{
+		if ($value === null) {
 			return $defaultValue;
 		}
 
-		if($defaultValue !== null)
-		{
+		if ($defaultValue !== null) {
 			settype($value, gettype($defaultValue));
 		}
 
@@ -151,14 +164,13 @@ abstract class Store
 
 		$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
 
-		if(isset($this->settings[$package][$key][$settingType]))
-		{ // Updating setting
-			$this->settings[$package][$key][$settingType]['value'] = $value;
+		if (isset($this->settings[$package][$key][$settingType])) { // Updating setting
+			if ($this->settings[$package][$key][$settingType]['value'] != $value) {
+				$this->settings[$package][$key][$settingType]['value'] = $value;
 
-			$modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
-		}
-		else
-		{ // Creating setting
+				$modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
+			}
+		} else { // Creating setting
 			$this->settings[$package][$key][$settingType] = [
 				'package' => $package,
 				'name' => $key,
@@ -185,35 +197,17 @@ abstract class Store
 	}
 
 	/**
-	 * Flush all setting changes to the backing store.
-	 *
-	 * @param int $userId The ID of the user to save the user settings for.
-	 *
-	 * @return bool Whether the settings were flushed correctly.
-	 */
-	protected abstract function flush($userId = -1);
-
-	/**
-	 * Load all settings into the setting store.
-	 *
-	 * @return array An array of all of the loaded settings.
-	 */
-	protected abstract function loadSettings();
-
-	/**
 	 * Save any changes to the settings.
 	 *
 	 * @return bool Whether the settings were saved correctly.
 	 */
 	public function save()
 	{
-		if($this->modified)
-		{
+		if ($this->modified) {
 			$user = $this->guard->user();
 			$userId = -1;
 
-			if($user !== null)
-			{
+			if ($user !== null) {
 				$userId = $user->getAuthIdentifier();
 			}
 
@@ -224,17 +218,13 @@ abstract class Store
 	}
 
 	/**
-	 * Ensures settings have been loaded by the store. If not, they are loaded from the backend.
+	 * Flush all setting changes to the backing store.
+	 *
+	 * @param int $userId The ID of the user to save the user settings for.
+	 *
+	 * @return bool Whether the settings were flushed correctly.
 	 */
-	protected function assertLoaded()
-	{
-		if(!$this->hasLoaded)
-		{
-			$this->settings = $this->loadSettings();
-
-			$this->hasLoaded = true;
-		}
-	}
+	protected abstract function flush($userId = -1);
 
 	/**
 	 * Get all settings.

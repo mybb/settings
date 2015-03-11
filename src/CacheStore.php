@@ -72,8 +72,7 @@ class CacheStore extends DatabaseStore
 	 */
 	protected function loadSettings()
 	{
-		if(($settings = $this->_cache->get($this->_cacheName)) === null)
-		{
+		if (($settings = $this->_cache->get($this->_cacheName)) === null) {
 			$settings = parent::loadSettings();
 
 			$this->_cache->forever($this->_cacheName, $settings);
