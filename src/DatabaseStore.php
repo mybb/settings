@@ -56,8 +56,8 @@ class DatabaseStore extends Store
 	 */
 	protected function flush($userId = -1)
 	{
-		$this->handleUpdatedSettings();
 		$this->handleCreatedSettings();
+		$this->handleUpdatedSettings();
 	}
 
 	/**
@@ -97,7 +97,27 @@ class DatabaseStore extends Store
 	private function handleUpdatedSettings()
 	{
 		foreach ($this->modifiedSettings as $id => $setting) {
-			$this->settingValueModel->where('setting_id', '=', $id)->update(['value' => $setting['value']]);
+			if (is_numeric($id)) {
+				$this->settingValueModel->where('setting_id', '=', $id)->update(['value' => $setting['value']]);
+			} else {
+				if ($setting['id'] != -1) {
+					$this->settingValueModel->create([
+						'value' => $setting['value'],
+						'user_id' => $setting['user_id'],
+						'setting_id' => $setting['id']
+					]);
+				} else {
+					$foundSetting = $this->settingsModel->where('name', '=', $setting['name'])
+					                                    ->where('package', '=', $setting['package'])->first();
+
+					if ($foundSetting != null) {
+						$foundSetting->values()->create([
+							'value' => $setting['value'],
+							'user_id' => $setting['user_id']
+						]);
+					}
+				}
+			}
 		}
 	}
 

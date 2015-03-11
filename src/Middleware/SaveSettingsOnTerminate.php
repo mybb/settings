@@ -35,7 +35,8 @@ class SaveSettingsOnTerminate implements TerminableMiddleware
 	 * Perform any final actions for the request lifecycle.
 	 *
 	 * @param  \Symfony\Component\HttpFoundation\Request  $request
-	 * @param  \Symfony\Component\HttpFoundation\Response  $response
+	 * @param  \Symfony\Component\HttpFoundation\Response $response
+	 *
 	 * @return void
 	 */
 	public function terminate($request, $response)
@@ -54,4 +55,5 @@ class SaveSettingsOnTerminate implements TerminableMiddleware
 	public function handle($request, Closure $next)
 	{
 		return $next($request);
-	}}
+	}
+}

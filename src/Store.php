@@ -164,12 +164,38 @@ abstract class Store
 
 		$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
 
-		if (isset($this->settings[$package][$key][$settingType])) { // Updating setting
-			if ($this->settings[$package][$key][$settingType]['value'] != $value) {
+		if (isset($this->settings[$package][$key])) { // Updating setting or adding user/default value to existing setting
+			if (!isset($this->settings[$package][$key][$settingType])) {
 				$this->modified = true;
-				$this->settings[$package][$key][$settingType]['value'] = $value;
 
-				$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
+				$existingSettingType = ($settingType == static::USER_SETTING_KEY) ? static::DEFAULT_SETTING_KEY : static::USER_SETTING_KEY;
+
+				$id = -1;
+
+				if (isset($this->settings[$package][$key][$existingSettingType]['id'])) {
+					$id = $this->settings[$package][$key][$existingSettingType]['id'];
+				}
+
+				$setting = $this->settings[$package][$key][$settingType] = [
+					'id' => $id,
+					'package' => $package,
+					'name' => $key,
+					'value' => $value,
+					'user_id' => null,
+				];
+
+				if ($useUserSettings && ($user = $this->guard->user()) !== null) {
+					$setting['user_id'] = $user->getAuthIdentifier();
+				}
+
+				$this->modifiedSettings[$package . '.' . $key . '-' . $settingType] = $setting;
+			} else {
+				if ($this->settings[$package][$key][$settingType]['value'] != $value) {
+					$this->modified = true;
+					$this->settings[$package][$key][$settingType]['value'] = $value;
+
+					$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
+				}
 			}
 		} else { // Creating setting
 			$this->modified = true;
@@ -177,7 +203,6 @@ abstract class Store
 				'package' => $package,
 				'name' => $key,
 				'value' => $value,
-
 			];
 
 			$this->createdSettings[$settingType][$package . '.' . $key] = $setting;
