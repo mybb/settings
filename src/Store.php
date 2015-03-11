@@ -51,15 +51,16 @@ abstract class Store
 	 * @var array
 	 */
 	protected $modifiedSettings = [
-		self::DEFAULT_SETTING_KEY => [],
-		self::USER_SETTING_KEY => [],
 	];
 	/**
 	 * A list of created settings.
 	 *
 	 * @var array
 	 */
-	protected $createdSettings = [];
+	protected $createdSettings = [
+		self::DEFAULT_SETTING_KEY => [],
+		self::USER_SETTING_KEY => [],
+	];
 	/**
 	 * A list of deleted settings.
 	 *
@@ -160,24 +161,26 @@ abstract class Store
 	public function set($key, $value, $useUserSettings = false, $package = 'mybb/core')
 	{
 		$this->assertLoaded();
-		$this->modified = true;
 
 		$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
 
 		if (isset($this->settings[$package][$key][$settingType])) { // Updating setting
 			if ($this->settings[$package][$key][$settingType]['value'] != $value) {
+				$this->modified = true;
 				$this->settings[$package][$key][$settingType]['value'] = $value;
 
-				$modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
+				$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
 			}
 		} else { // Creating setting
-			$this->settings[$package][$key][$settingType] = [
+			$this->modified = true;
+			$setting = $this->settings[$package][$key][$settingType] = [
 				'package' => $package,
 				'name' => $key,
 				'value' => $value,
+
 			];
 
-			$this->createdSettings[$settingType] = $this->settings[$package][$key][$settingType];
+			$this->createdSettings[$settingType][$package . '.' . $key] = $setting;
 		}
 	}
 
