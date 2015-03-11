@@ -225,6 +225,24 @@ abstract class Store
 	}
 
 	/**
+	 * Delete a setting by key.
+	 *
+	 * @param string $key     The key of the setting to delete.
+	 * @param bool   $dropJustUserSetting Whether to only delete the user setting if one exists. Default behaviour is to delete the setting and all values.
+	 * @param string $package The name of the package to delete the setting for. Defaults to 'mybb/core'.
+	 */
+	public function delete($key, $dropJustUserSetting = false, $package = 'mybb/core')
+	{
+		$this->assertLoaded();
+
+		$this->deletedSettings[] = [
+			'package' => $package,
+		    'name' => $key,
+		    'just_user' => (bool) $dropJustUserSetting,
+		];
+	}
+
+	/**
 	 * Save any changes to the settings.
 	 *
 	 * @return bool Whether the settings were saved correctly.

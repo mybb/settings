@@ -58,6 +58,7 @@ class DatabaseStore extends Store
 	{
 		$this->handleCreatedSettings();
 		$this->handleUpdatedSettings();
+		$this->handleDeletedSettings();
 	}
 
 	/**
@@ -118,6 +119,8 @@ class DatabaseStore extends Store
 					}
 				}
 			}
+
+			unset($this->modifiedSettings[$id]);
 		}
 	}
 
@@ -126,17 +129,19 @@ class DatabaseStore extends Store
 	 */
 	private function handleCreatedSettings()
 	{
-		foreach ($this->createdSettings[static::DEFAULT_SETTING_KEY] as $createdDefaultSetting) {
+		foreach ($this->createdSettings[static::DEFAULT_SETTING_KEY] as $key => $createdDefaultSetting) {
 			$setting = $this->settingsModel->create([
 				'package' => $createdDefaultSetting['package'],
 				'name' => $createdDefaultSetting['name'],
 			]);
 
 			$setting->values()->create(['value' => $createdDefaultSetting['value']]);
+
+			unset($this->createdSettings[static::DEFAULT_SETTING_KEY][$key]);
 		}
 
 		if (($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0) {
-			foreach ($this->createdSettings[static::USER_SETTING_KEY] as $createdDefaultSetting) {
+			foreach ($this->createdSettings[static::USER_SETTING_KEY] as $key => $createdDefaultSetting) {
 				$setting = $this->settingsModel->create([
 					'package' => $createdDefaultSetting['package'],
 					'name' => $createdDefaultSetting['name'],
@@ -146,6 +151,26 @@ class DatabaseStore extends Store
 					'value' => $createdDefaultSetting['value'],
 					'user_id' => $user->getAuthIdentifier()
 				]);
+
+				unset($this->createdSettings[static::USER_SETTING_KEY][$key]);
+			}
+		}
+	}
+
+	/**
+	 * Remove any settings that have been deleted.
+	 */
+	private function handleDeletedSettings()
+	{
+		foreach ($this->deletedSettings as $key => $setting) {
+			if ($setting['just_user']) {
+				if (($user = $this->guard->user()) !== null) {
+					$this->settingValueModel->join('settings', 'setting_values.setting_id', '=', 'settings.id')->where('settings.name', '=', $setting['name'])->where('settings.package', '=', $setting['package'])->where('setting_values.user_id', '=', $user->getAuthIdentifier())->delete();
+				}
+			} else {
+				$settingEntry = $this->settingsModel->where('name', '=', $setting['name'])->where('package', '=', $setting['package'])->first();
+				$settingEntry->values()->delete();
+				$settingEntry->delete();
 			}
 		}
 	}
