@@ -42,9 +42,6 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 	public function register()
 	{
 		$this->app->bindShared('MyBB\Settings\Manager', function (Application $app) {
-//		    $app->shutdown(function($app) {
-//			    $app->make('MyBB\Settings\Store')->save();
-//		    });
 
 			return new Manager($app);
 		});
