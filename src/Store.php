@@ -163,54 +163,69 @@ abstract class Store
 		$this->assertLoaded();
 
 		if ($value === null) {
-			$this->remove($key, $useUserSettings, $package);
+			$this->delete($key, $useUserSettings, $package);
 			return;
 		}
 
-		$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
+		if (is_array($key)) {
+			foreach ($key as $k => $v) {
+				$settingKey = $k;
+				$settingVal = $v;
 
-		if (isset($this->settings[$package][$key])) { // Updating setting or adding user/default value to existing setting
-			if (!isset($this->settings[$package][$key][$settingType])) {
-				$this->modified = true;
+				if (is_array($value) && isset($value[$k])) {
+					$settingKey = $v;
+					$settingVal = $value[$k];
 
-				$existingSettingType = ($settingType == static::USER_SETTING_KEY) ? static::DEFAULT_SETTING_KEY : static::USER_SETTING_KEY;
-
-				$id = -1;
-
-				if (isset($this->settings[$package][$key][$existingSettingType]['id'])) {
-					$id = $this->settings[$package][$key][$existingSettingType]['id'];
 				}
 
+				$this->set($settingKey, $settingVal, $useUserSettings, $package);
+			}
+		} else {
+			$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
+
+			if (isset($this->settings[$package][$key])) { // Updating setting or adding user/default value to existing setting
+				if (!isset($this->settings[$package][$key][$settingType])) {
+					$this->modified = true;
+
+					$existingSettingType = ($settingType == static::USER_SETTING_KEY) ? static::DEFAULT_SETTING_KEY : static::USER_SETTING_KEY;
+
+					$id = -1;
+
+					if (isset($this->settings[$package][$key][$existingSettingType]['id'])) {
+						$id = $this->settings[$package][$key][$existingSettingType]['id'];
+					}
+
+					$setting = $this->settings[$package][$key][$settingType] = [
+						'id' => $id,
+						'package' => $package,
+						'name' => $key,
+						'value' => $value,
+						'user_id' => null,
+					];
+
+					if ($useUserSettings && ($user = $this->guard->user()) !== null) {
+						$setting['user_id'] = $user->getAuthIdentifier();
+					}
+
+					$this->modifiedSettings[$package . '.' . $key . '-' . $settingType] = $setting;
+				} else {
+					if ($this->settings[$package][$key][$settingType]['value'] != $value) {
+						$this->modified = true;
+						$this->settings[$package][$key][$settingType]['value'] = $value;
+
+						$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
+					}
+				}
+			} else { // Creating setting
+				$this->modified = true;
 				$setting = $this->settings[$package][$key][$settingType] = [
-					'id' => $id,
 					'package' => $package,
 					'name' => $key,
 					'value' => $value,
-					'user_id' => null,
 				];
 
-				if ($useUserSettings && ($user = $this->guard->user()) !== null) {
-					$setting['user_id'] = $user->getAuthIdentifier();
-				}
-
-				$this->modifiedSettings[$package . '.' . $key . '-' . $settingType] = $setting;
-			} else {
-				if ($this->settings[$package][$key][$settingType]['value'] != $value) {
-					$this->modified = true;
-					$this->settings[$package][$key][$settingType]['value'] = $value;
-
-					$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
-				}
+				$this->createdSettings[$settingType][$package . '.' . $key] = $setting;
 			}
-		} else { // Creating setting
-			$this->modified = true;
-			$setting = $this->settings[$package][$key][$settingType] = [
-				'package' => $package,
-				'name' => $key,
-				'value' => $value,
-			];
-
-			$this->createdSettings[$settingType][$package . '.' . $key] = $setting;
 		}
 	}
 
