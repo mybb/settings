@@ -162,7 +162,7 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		if ($value === null) {
+		if (!is_array($key) && $value === null) {
 			$this->delete($key, $useUserSettings, $package);
 			return;
 		}
@@ -263,6 +263,8 @@ abstract class Store
 				'name' => $key,
 				'just_user' => (bool) $dropJustUserSetting,
 			];
+
+			unset($this->settings[$package][$key]);
 		}
 	}
 
