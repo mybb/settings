@@ -307,6 +307,6 @@ abstract class Store
 	{
 		$this->assertLoaded();
 
-		return array_merge($this->settings, $this->userSettings);
+		return $this->settings;
 	}
 }

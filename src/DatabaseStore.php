@@ -68,7 +68,7 @@ class DatabaseStore extends Store
 	 */
 	protected function loadSettings()
 	{
-		$settings = $this->settingsModel->join('setting_values', 'setting_values.setting_id', '=', 'settings.id');
+		$settings = $this->settingsModel->leftJoin('setting_values', 'setting_values.setting_id', '=', 'settings.id')->select(['settings.id', 'settings.name', 'settings.package', 'setting_values.value', 'setting_values.user_id']);
 
 		if (($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0) {
 			$settings = $settings->where('user_id', '=', $user->getAuthIdentifier())->orWhereNull('user_id');
@@ -82,7 +82,7 @@ class DatabaseStore extends Store
 			$settingType = ($setting->user_id === null) ? Store::DEFAULT_SETTING_KEY : Store::USER_SETTING_KEY;
 
 			$this->settings[$setting->package][$setting->name][$settingType] = [
-				'id' => $setting->setting_id,
+				'id' => $setting->id,
 				'value' => $setting->value,
 				'package' => $setting->package,
 				'name' => $setting->name,
