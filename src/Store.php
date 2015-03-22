@@ -213,7 +213,14 @@ abstract class Store
 						$this->modified = true;
 						$this->settings[$package][$key][$settingType]['value'] = $value;
 
-						$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $this->settings[$package][$key][$settingType];
+						$setting = $this->settings[$package][$key][$settingType];
+						$setting['user_id'] = null;
+
+						if ($useUserSettings && ($user = $this->guard->user()) !== null) {
+							$setting['user_id'] = $user->getAuthIdentifier();
+						}
+
+						$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $setting;
 					}
 				}
 			} else { // Creating setting

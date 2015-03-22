@@ -99,7 +99,9 @@ class DatabaseStore extends Store
 	{
 		foreach ($this->modifiedSettings as $id => $setting) {
 			if (is_numeric($id)) {
-				$this->settingValueModel->where('setting_id', '=', $id)->update(['value' => $setting['value']]);
+				$this->settingValueModel->where('setting_id', '=', $id)
+										->where('user_id', '=', $setting['user_id'])
+										->update(['value' => $setting['value']]);
 			} else {
 				if ($setting['id'] != -1) {
 					$this->settingValueModel->create([
