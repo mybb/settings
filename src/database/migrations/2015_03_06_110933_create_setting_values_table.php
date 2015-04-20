@@ -33,5 +33,4 @@ class CreateSettingValuesTable extends Migration
 	{
 		Schema::drop('setting_values');
 	}
-
 }

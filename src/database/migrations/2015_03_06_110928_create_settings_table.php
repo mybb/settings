@@ -32,5 +32,4 @@ class CreateSettingsTable extends Migration
 	{
 		Schema::drop('settings');
 	}
-
 }

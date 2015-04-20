@@ -123,7 +123,7 @@ abstract class Store
 	 *
 	 * @return array An array of all of the loaded settings.
 	 */
-	protected abstract function loadSettings();
+	abstract protected function loadSettings();
 
 	/**
 	 * Determine the return value from an actual value and default value.
@@ -303,7 +303,7 @@ abstract class Store
 	 *
 	 * @return bool Whether the settings were flushed correctly.
 	 */
-	protected abstract function flush($userId = -1);
+	abstract protected function flush($userId = -1);
 
 	/**
 	 * Get all settings.
