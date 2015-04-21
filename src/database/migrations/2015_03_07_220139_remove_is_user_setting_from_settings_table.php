@@ -39,5 +39,4 @@ class RemoveIsUserSettingFromSettingsTable extends Migration
 			$table->foreign('setting_id')->references('id')->on('settings')->onDelete('cascade');
 		});
 	}
-
 }

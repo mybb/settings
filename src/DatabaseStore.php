@@ -68,7 +68,14 @@ class DatabaseStore extends Store
 	 */
 	protected function loadSettings()
 	{
-		$settings = $this->settingsModel->leftJoin('setting_values', 'setting_values.setting_id', '=', 'settings.id')->select(['settings.id', 'settings.name', 'settings.package', 'setting_values.value', 'setting_values.user_id']);
+		$settings = $this->settingsModel->leftJoin('setting_values', 'setting_values.setting_id', '=', 'settings.id')
+			->select([
+				'settings.id',
+				'settings.name',
+				'settings.package',
+				'setting_values.value',
+				'setting_values.user_id'
+			]);
 
 		if (($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0) {
 			$settings = $settings->where('user_id', '=', $user->getAuthIdentifier())->orWhereNull('user_id');
@@ -100,8 +107,8 @@ class DatabaseStore extends Store
 		foreach ($this->modifiedSettings as $id => $setting) {
 			if (is_numeric($id)) {
 				$this->settingValueModel->where('setting_id', '=', $id)
-										->where('user_id', '=', $setting['user_id'])
-										->update(['value' => $setting['value']]);
+					->where('user_id', '=', $setting['user_id'])
+					->update(['value' => $setting['value']]);
 			} else {
 				if ($setting['id'] != -1) {
 					$this->settingValueModel->create([
@@ -111,7 +118,7 @@ class DatabaseStore extends Store
 					]);
 				} else {
 					$foundSetting = $this->settingsModel->where('name', '=', $setting['name'])
-					                                    ->where('package', '=', $setting['package'])->first();
+						->where('package', '=', $setting['package'])->first();
 
 					if ($foundSetting != null) {
 						$foundSetting->values()->create([
@@ -167,10 +174,27 @@ class DatabaseStore extends Store
 		foreach ($this->deletedSettings as $key => $setting) {
 			if ($setting['just_user']) {
 				if (($user = $this->guard->user()) !== null) {
-					$this->settingValueModel->join('settings', 'setting_values.setting_id', '=', 'settings.id')->where('settings.name', '=', $setting['name'])->where('settings.package', '=', $setting['package'])->where('setting_values.user_id', '=', $user->getAuthIdentifier())->delete();
+					$this->settingValueModel->join(
+						'settings',
+						'setting_values.setting_id',
+						'=',
+						'settings.id'
+					)->where('settings.name', '=', $setting['name'])->where(
+						'settings.package',
+						'=',
+						$setting['package']
+					)->where(
+						'setting_values.user_id',
+						'=',
+						$user->getAuthIdentifier()
+					)->delete();
 				}
 			} else {
-				$settingEntry = $this->settingsModel->where('name', '=', $setting['name'])->where('package', '=', $setting['package'])->first();
+				$settingEntry = $this->settingsModel->where('name', '=', $setting['name'])->where(
+					'package',
+					'=',
+					$setting['package']
+				)->first();
 
 				$settingEntry->values()->delete();
 				$settingEntry->delete();
