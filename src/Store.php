@@ -17,7 +17,7 @@ use Illuminate\Contracts\Auth\Guard;
 abstract class Store
 {
 	const DEFAULT_SETTING_KEY = 'default';
-	const USER_SETTING_KEY    = 'user';
+	const USER_SETTING_KEY = 'user';
 
 	/**
 	 * Laravel guard instance, used to get user ID for user settings.
@@ -36,13 +36,13 @@ abstract class Store
 	/**
 	 * Whether the settings have been loaded yet.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $hasLoaded = false;
 	/**
 	 * Whether the settings have been modified at all.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	protected $modified = false;
 	/**
@@ -164,6 +164,7 @@ abstract class Store
 
 		if (!is_array($key) && $value === null) {
 			$this->delete($key, $useUserSettings, $package);
+
 			return;
 		}
 
@@ -183,11 +184,15 @@ abstract class Store
 		} else {
 			$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
 
-			if (isset($this->settings[$package][$key])) { // Updating setting or adding user/default value to existing setting
+			// Updating setting or adding user/default value to existing setting
+			if (isset($this->settings[$package][$key])) {
 				if (!isset($this->settings[$package][$key][$settingType])) {
 					$this->modified = true;
 
-					$existingSettingType = ($settingType == static::USER_SETTING_KEY) ? static::DEFAULT_SETTING_KEY : static::USER_SETTING_KEY;
+					$existingSettingType =
+						($settingType == static::USER_SETTING_KEY)
+							? static::DEFAULT_SETTING_KEY
+							: static::USER_SETTING_KEY;
 
 					$id = -1;
 
@@ -254,9 +259,10 @@ abstract class Store
 	/**
 	 * Delete a setting by key.
 	 *
-	 * @param string $key     The key of the setting to delete.
-	 * @param bool   $dropJustUserSetting Whether to only delete the user setting if one exists. Default behaviour is to delete the setting and all values.
-	 * @param string $package The name of the package to delete the setting for. Defaults to 'mybb/core'.
+	 * @param string $key                 The key of the setting to delete.
+	 * @param bool   $dropJustUserSetting Whether to only delete the user setting if one exists.
+	 *                                    Default behaviour is to delete the setting and all values.
+	 * @param string $package             The name of the package to delete the setting for. Defaults to 'mybb/core'.
 	 */
 	public function delete($key, $dropJustUserSetting = false, $package = 'mybb/core')
 	{
@@ -268,7 +274,7 @@ abstract class Store
 			$this->deletedSettings[] = [
 				'package' => $package,
 				'name' => $key,
-				'just_user' => (bool) $dropJustUserSetting,
+				'just_user' => (bool)$dropJustUserSetting,
 			];
 
 			unset($this->settings[$package][$key]);

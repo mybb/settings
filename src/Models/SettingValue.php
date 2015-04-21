@@ -16,12 +16,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class SettingValue extends Model
 {
+	// @codingStandardsIgnoreStart
+
 	/**
 	 * Indicates if the model should be timestamped.
 	 *
-	 * @var bool
+	 * @var boolean
 	 */
 	public $timestamps = false;
+
+	// @codingStandardsIgnoreEnd
+
 	/**
 	 * The table associated with the model.
 	 *

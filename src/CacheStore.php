@@ -24,13 +24,13 @@ class CacheStore extends DatabaseStore
 	 *
 	 * @var Repository
 	 */
-	protected $_cache;
+	protected $cache;
 	/**
 	 * The name of the cache to store settings in.
 	 *
 	 * @var string
 	 */
-	protected $_cacheName;
+	protected $cacheName;
 
 	/**
 	 * @param Guard        $guard             Laravel guard instance, used to get user settings.
@@ -47,8 +47,8 @@ class CacheStore extends DatabaseStore
 		$cacheName = 'mybb.core.settings'
 	) {
 		parent::__construct($guard, $settingsModel, $settingValueModel);
-		$this->_cache = $cache;
-		$this->_cacheName = $cacheName;
+		$this->cache = $cache;
+		$this->cacheName = $cacheName;
 	}
 
 	/**
@@ -62,7 +62,7 @@ class CacheStore extends DatabaseStore
 	{
 		parent::flush($userId);
 
-		$this->_cache->forget($this->_cacheName);
+		$this->cache->forget($this->cacheName);
 	}
 
 	/**
@@ -72,10 +72,10 @@ class CacheStore extends DatabaseStore
 	 */
 	protected function loadSettings()
 	{
-		if (($settings = $this->_cache->get($this->_cacheName)) === null) {
+		if (($settings = $this->cache->get($this->cacheName)) === null) {
 			$settings = parent::loadSettings();
 
-			$this->_cache->forever($this->_cacheName, $settings);
+			$this->cache->forever($this->cacheName, $settings);
 		}
 
 		return $settings;
