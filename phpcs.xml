@@ -15,4 +15,8 @@
 		<exclude-pattern>*/src/config/*</exclude-pattern>
 	</rule>
 
+	<rule ref="MyBB2.Naming.AbstractClassConvention">
+		<exclude-pattern>*/src/Store.php</exclude-pattern>
+	</rule>
+
 </ruleset>
