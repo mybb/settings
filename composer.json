@@ -1,7 +1,7 @@
 {
     "name": "mybb/settings",
     "description": "MyBB 2.0 settings package.",
-    "license": "MIT",
+    "license": "BSD-3",
     "authors": [
         {
             "name": "Euan T.",
