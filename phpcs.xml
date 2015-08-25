@@ -4,7 +4,7 @@
 
 	<file>src</file>
 
-	<rule ref="MyBB2"/>
+	<rule ref="MyBB2/MyBB2"/>
 
 	<rule ref="Generic.Files.LineLength">
 		<exclude-pattern>*/resources/*</exclude-pattern>
