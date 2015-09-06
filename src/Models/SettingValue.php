@@ -54,6 +54,6 @@ class SettingValue extends Model
 
 	public function setting()
 	{
-		return $this->belongsTo('MyBB\Settings\Models\Setting');
+		return $this->belongsTo(Setting::class);
 	}
 }

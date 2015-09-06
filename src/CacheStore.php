@@ -52,20 +52,6 @@ class CacheStore extends DatabaseStore
 	}
 
 	/**
-	 * Flush all setting changes to the backing store.
-	 *
-	 * @param int $userId The ID of the user to save the user settings for.
-	 *
-	 * @return bool Whether the settings were flushed correctly.
-	 */
-	protected function flush($userId = -1)
-	{
-		parent::flush($userId);
-
-		$this->cache->forget($this->cacheName);
-	}
-
-	/**
 	 * Load all settings into the setting store.
 	 *
 	 * @return array An array of all of the loaded settings.
