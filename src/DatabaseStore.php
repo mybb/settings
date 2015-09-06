@@ -32,8 +32,8 @@ class DatabaseStore extends Store
 	private $settingValueModel;
 
 	/**
-	 * @param Guard        $guard Laravel guard instance, used to get user settings.
-	 * @param Setting      $settingsModel Settings model instance.
+	 * @param Guard        $guard             Laravel guard instance, used to get user settings.
+	 * @param Setting      $settingsModel     Settings model instance.
 	 * @param SettingValue $settingValueModel Setting value model instance.
 	 */
 	public function __construct(
