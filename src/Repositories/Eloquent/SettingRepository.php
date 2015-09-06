@@ -28,6 +28,10 @@ class SettingRepository implements SettingRepositoryInterface
 	 */
 	private $settingValuesModel;
 
+	/**
+	 * @param Setting      $settingsModel
+	 * @param SettingValue $settingValuesModel
+	 */
 	public function __construct(Setting $settingsModel, SettingValue $settingValuesModel)
 	{
 		$this->settingsModel = $settingsModel;
