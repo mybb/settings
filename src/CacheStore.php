@@ -33,11 +33,11 @@ class CacheStore extends DatabaseStore
 	protected $cacheName;
 
 	/**
-	 * @param Guard        $guard             Laravel guard instance, used to get user settings.
-	 * @param Setting      $settingsModel     Settings model instance.
+	 * @param Guard        $guard Laravel guard instance, used to get user settings.
+	 * @param Setting      $settingsModel Settings model instance.
 	 * @param SettingValue $settingValueModel Setting value model instance.
-	 * @param Repository   $cache             Cache repository for settings.
-	 * @param string       $cacheName         The name of the cache to use.
+	 * @param Repository   $cache Cache repository for settings.
+	 * @param string       $cacheName The name of the cache to use.
 	 */
 	public function __construct(
 		Guard $guard,

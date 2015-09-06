@@ -37,16 +37,16 @@ class SettingRepository implements SettingRepositoryInterface
 	/**
 	 * Update a setting.
 	 *
-	 * @param array $name An array of setting/value to update. Eg: ['bbname' => 'MyBB Community'].
+	 * @param array   $name An array of setting/value to update. Eg: ['bbname' => 'MyBB Community'].
 	 * @param integer $userId The user to set the setting value for. Defaults to none (-1) to update a board setting.
-	 * @param string $package The package the setting belongs to.
+	 * @param string  $package The package the setting belongs to.
 	 *
 	 * @return void
 	 */
 	public function update(array $name, $userId = SettingRepositoryInterface::USER_NONE, $package = 'mybb/core')
 	{
-		$user = $userId = (int) $userId;
-		$package = (string) $package;
+		$user = $userId = (int)$userId;
+		$package = (string)$package;
 
 		if ($userId === static::USER_NONE) {
 			$user = null;
@@ -74,14 +74,14 @@ class SettingRepository implements SettingRepositoryInterface
 	 * Create a new setting.
 	 *
 	 * @param string|array $name The name, or an array of names, of the setting(s) to create.
-	 * @param string $package The package the setting belongs to.
+	 * @param string       $package The package the setting belongs to.
 	 *
 	 * @return void
 	 */
 	public function create($name, $package = 'mybb/core')
 	{
 		if (!is_array($name)) {
-			$name = [(string) $name];
+			$name = [(string)$name];
 		}
 
 		if (empty($package)) {
@@ -92,7 +92,7 @@ class SettingRepository implements SettingRepositoryInterface
 
 		foreach ($name as $setting) {
 			$insertArray[] = [
-				'name' => $setting,
+				'name'    => $setting,
 				'package' => $package,
 			];
 		}
@@ -104,18 +104,19 @@ class SettingRepository implements SettingRepositoryInterface
 	 * Delete a setting.
 	 *
 	 * @param string|array $name The name, or an array of names, of the setting(s) to delete.
-	 * @param integer $userId The user to delete the setting value for. Defaults to none (-1) to delete a setting completely.
-	 * @param string $package The package the setting belongs to.
+	 * @param integer      $userId The user to delete the setting value for. Defaults to none (-1) to delete a setting
+	 *     completely.
+	 * @param string       $package The package the setting belongs to.
 	 *
 	 * @return boolean Whether the setting was deleted.
 	 */
 	public function delete($name, $userId = SettingRepositoryInterface::USER_NONE, $package = 'mybb/core')
 	{
-		$userId = (int) $userId;
-		$package = (string) $package;
+		$userId = (int)$userId;
+		$package = (string)$package;
 
 		if (!is_array($name)) {
-			$name = [(string) $name];
+			$name = [(string)$name];
 		}
 
 		if (empty($package)) {
@@ -137,15 +138,16 @@ class SettingRepository implements SettingRepositoryInterface
 	/**
 	 * Check if a setting exists.
 	 *
-	 * @param string $name The name of the setting to check.
-	 * @param integer $userId The user to check if the setting exists for. Defaults to none (-1) to check if a setting exists at all.
-	 * @param string $package The package the setting belongs to.
+	 * @param string  $name The name of the setting to check.
+	 * @param integer $userId The user to check if the setting exists for. Defaults to none (-1) to check if a setting
+	 *     exists at all.
+	 * @param string  $package The package the setting belongs to.
 	 *
 	 * @return boolean Whether the setting exists.
 	 */
 	public function exists($name, $userId = SettingRepositoryInterface::USER_NONE, $package = 'mybb/core')
 	{
-		$user = $userId = (int) $userId;
+		$user = $userId = (int)$userId;
 
 		if ($userId === static::USER_NONE) {
 			$user = null;

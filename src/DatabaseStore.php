@@ -32,8 +32,8 @@ class DatabaseStore extends Store
 	private $settingValueModel;
 
 	/**
-	 * @param Guard        $guard             Laravel guard instance, used to get user settings.
-	 * @param Setting      $settingsModel     Settings model instance.
+	 * @param Guard        $guard Laravel guard instance, used to get user settings.
+	 * @param Setting      $settingsModel Settings model instance.
 	 * @param SettingValue $settingValueModel Setting value model instance.
 	 */
 	public function __construct(
@@ -54,13 +54,14 @@ class DatabaseStore extends Store
 	 */
 	protected function loadSettings()
 	{
-		$settings = $this->settingsModel->newQuery()->leftJoin('setting_values', 'setting_values.setting_id', '=', 'settings.id')
+		$settings = $this->settingsModel->newQuery()
+			->leftJoin('setting_values', 'setting_values.setting_id', '=', 'settings.id')
 			->select([
 				'settings.id',
 				'settings.name',
 				'settings.package',
 				'setting_values.value',
-				'setting_values.user_id'
+				'setting_values.user_id',
 			]);
 
 		if (($user = $this->guard->user()) !== null && $user->getAuthIdentifier() > 0) {
@@ -75,10 +76,10 @@ class DatabaseStore extends Store
 			$settingType = ($setting->user_id === null) ? Store::DEFAULT_SETTING_KEY : Store::USER_SETTING_KEY;
 
 			$this->settings[$setting->package][$setting->name][$settingType] = [
-				'id' => $setting->id,
-				'value' => $setting->value,
+				'id'      => $setting->id,
+				'value'   => $setting->value,
 				'package' => $setting->package,
-				'name' => $setting->name,
+				'name'    => $setting->name,
 			];
 		}
 

@@ -59,7 +59,7 @@ abstract class Store
 	 */
 	protected $createdSettings = [
 		self::DEFAULT_SETTING_KEY => [],
-		self::USER_SETTING_KEY => [],
+		self::USER_SETTING_KEY    => [],
 	];
 
 	/**
@@ -73,11 +73,11 @@ abstract class Store
 	/**
 	 * Get a setting value.
 	 *
-	 * @param string $key             The name of the setting.
-	 * @param mixed  $defaultValue    A default value to use if the setting does not exist. Defaults to null.
+	 * @param string $key The name of the setting.
+	 * @param mixed  $defaultValue A default value to use if the setting does not exist. Defaults to null.
 	 * @param bool   $useUserSettings Whether to take into account user settings. User settings have priority over main
 	 *                                settings. Defaults to true.
-	 * @param string $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
+	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return mixed The value of the setting.
 	 */
@@ -122,7 +122,7 @@ abstract class Store
 	/**
 	 * Determine the return value from an actual value and default value.
 	 *
-	 * @param mixed $value        The actual value.
+	 * @param mixed $value The actual value.
 	 * @param mixed $defaultValue The default value.
 	 *
 	 * @return mixed The determined value. If both $value and $defaultValue are not null, $value will be typecast to
@@ -144,7 +144,7 @@ abstract class Store
 	/**
 	 * Check if a setting exists.
 	 *
-	 * @param string $key     The name of the setting.
+	 * @param string $key The name of the setting.
 	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
 	 *
 	 * @return bool Whether the setting exists.
