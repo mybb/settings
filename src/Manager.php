@@ -12,6 +12,11 @@
 
 namespace MyBB\Settings;
 
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Contracts\Cache\Repository;
+use MyBB\Settings\Models\Setting;
+use MyBB\Settings\Models\SettingValue;
+
 class Manager extends \Illuminate\Support\Manager
 {
 	/**
@@ -32,9 +37,9 @@ class Manager extends \Illuminate\Support\Manager
 	public function createDatabaseDriver()
 	{
 		return new DatabaseStore(
-			$this->app->make('Illuminate\Contracts\Auth\Guard'),
-			$this->app->make('MyBB\Settings\Models\Setting'),
-			$this->app->make('MyBB\Settings\Models\SettingValue')
+			$this->app->make(Guard::class),
+			$this->app->make(Setting::class),
+			$this->app->make(SettingValue::class)
 		);
 	}
 
@@ -45,13 +50,13 @@ class Manager extends \Illuminate\Support\Manager
 	 */
 	public function createCacheDriver()
 	{
-		$cache = $this->app->make('Illuminate\Contracts\Cache\Repository');
+		$cache = $this->app->make(Repository::class);
 		$cacheName = $this->app['config']->get('settings.settings_cache_name');
 
 		return new CacheStore(
-			$this->app->make('Illuminate\Contracts\Auth\Guard'),
-			$this->app->make('MyBB\Settings\Models\Setting'),
-			$this->app->make('MyBB\Settings\Models\SettingValue'),
+			$this->app->make(Guard::class),
+			$this->app->make(Setting::class),
+			$this->app->make(SettingValue::class),
 			$cache,
 			$cacheName
 		);

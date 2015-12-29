@@ -13,6 +13,8 @@
 namespace MyBB\Settings;
 
 use Illuminate\Contracts\Foundation\Application;
+use MyBB\Settings\Repositories\Eloquent\SettingRepository;
+use MyBB\Settings\Repositories\SettingRepositoryInterface;
 
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
@@ -41,14 +43,16 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 	 */
 	public function register()
 	{
-		$this->app->bindShared('MyBB\Settings\Manager', function (Application $app) {
+		$this->app->singleton(Manager::class, function (Application $app) {
 
 			return new Manager($app);
 		});
 
-		$this->app->bind('MyBB\Settings\Store', function (Application $app) {
-			return $app->make('MyBB\Settings\Manager')->driver();
+		$this->app->bind(Store::class, function (Application $app) {
+			return $app->make(Manager::class)->driver();
 		});
+
+		$this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
 
 		$this->mergeConfigFrom(__DIR__ . '/config/settings.php', 'settings');
 	}
@@ -61,8 +65,9 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 	public function provides()
 	{
 		return [
-			'MyBB\Settings\Manager',
-			'MyBB\Settings\Store',
+			Manager::class,
+			Store::class,
+			SettingRepositoryInterface::class,
 		];
 	}
 }

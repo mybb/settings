@@ -54,6 +54,6 @@ class Setting extends Model
 
 	public function values()
 	{
-		return $this->hasMany('MyBB\Settings\Models\SettingValue');
+		return $this->hasMany(SettingValue::class);
 	}
 }

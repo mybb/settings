@@ -59,14 +59,8 @@ abstract class Store
 	 */
 	protected $createdSettings = [
 		self::DEFAULT_SETTING_KEY => [],
-		self::USER_SETTING_KEY => [],
+		self::USER_SETTING_KEY    => [],
 	];
-	/**
-	 * A list of deleted settings.
-	 *
-	 * @var array
-	 */
-	protected $deletedSettings = [];
 
 	/**
 	 * @param Guard $guard Laravel guard instance, used to get user settings.
@@ -148,100 +142,6 @@ abstract class Store
 	}
 
 	/**
-	 * Set a setting value.
-	 *
-	 * @param string $key             The name of the setting.
-	 * @param mixed  $value           The value for the setting.
-	 * @param bool   $useUserSettings Whether to set the setting as a user setting. Defaults to false.
-	 *
-	 * @param string $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
-	 *
-	 * @return void
-	 */
-	public function set($key, $value, $useUserSettings = false, $package = 'mybb/core')
-	{
-		$this->assertLoaded();
-
-		if (!is_array($key) && $value === null) {
-			$this->delete($key, $useUserSettings, $package);
-
-			return;
-		}
-
-		if (is_array($key)) {
-			foreach ($key as $k => $v) {
-				$settingKey = $k;
-				$settingVal = $v;
-
-				if (is_array($value) && isset($value[$k])) {
-					$settingKey = $v;
-					$settingVal = $value[$k];
-
-				}
-
-				$this->set($settingKey, $settingVal, $useUserSettings, $package);
-			}
-		} else {
-			$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
-
-			// Updating setting or adding user/default value to existing setting
-			if (isset($this->settings[$package][$key])) {
-				if (!isset($this->settings[$package][$key][$settingType])) {
-					$this->modified = true;
-
-					$existingSettingType =
-						($settingType == static::USER_SETTING_KEY)
-							? static::DEFAULT_SETTING_KEY
-							: static::USER_SETTING_KEY;
-
-					$id = -1;
-
-					if (isset($this->settings[$package][$key][$existingSettingType]['id'])) {
-						$id = $this->settings[$package][$key][$existingSettingType]['id'];
-					}
-
-					$setting = $this->settings[$package][$key][$settingType] = [
-						'id' => $id,
-						'package' => $package,
-						'name' => $key,
-						'value' => $value,
-						'user_id' => null,
-					];
-
-					if ($useUserSettings && ($user = $this->guard->user()) !== null) {
-						$setting['user_id'] = $user->getAuthIdentifier();
-					}
-
-					$this->modifiedSettings[$package . '.' . $key . '-' . $settingType] = $setting;
-				} else {
-					if ($this->settings[$package][$key][$settingType]['value'] != $value) {
-						$this->modified = true;
-						$this->settings[$package][$key][$settingType]['value'] = $value;
-
-						$setting = $this->settings[$package][$key][$settingType];
-						$setting['user_id'] = null;
-
-						if ($useUserSettings && ($user = $this->guard->user()) !== null) {
-							$setting['user_id'] = $user->getAuthIdentifier();
-						}
-
-						$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $setting;
-					}
-				}
-			} else { // Creating setting
-				$this->modified = true;
-				$setting = $this->settings[$package][$key][$settingType] = [
-					'package' => $package,
-					'name' => $key,
-					'value' => $value,
-				];
-
-				$this->createdSettings[$settingType][$package . '.' . $key] = $setting;
-			}
-		}
-	}
-
-	/**
 	 * Check if a setting exists.
 	 *
 	 * @param string $key     The name of the setting.
@@ -255,61 +155,6 @@ abstract class Store
 
 		return isset($this->settings[$package][$key]);
 	}
-
-	/**
-	 * Delete a setting by key.
-	 *
-	 * @param string $key                 The key of the setting to delete.
-	 * @param bool   $dropJustUserSetting Whether to only delete the user setting if one exists.
-	 *                                    Default behaviour is to delete the setting and all values.
-	 * @param string $package             The name of the package to delete the setting for. Defaults to 'mybb/core'.
-	 */
-	public function delete($key, $dropJustUserSetting = false, $package = 'mybb/core')
-	{
-		$this->assertLoaded();
-
-		if ($this->has($key, $package)) {
-			$this->modified = true;
-
-			$this->deletedSettings[] = [
-				'package' => $package,
-				'name' => $key,
-				'just_user' => (bool)$dropJustUserSetting,
-			];
-
-			unset($this->settings[$package][$key]);
-		}
-	}
-
-	/**
-	 * Save any changes to the settings.
-	 *
-	 * @return bool Whether the settings were saved correctly.
-	 */
-	public function save()
-	{
-		if ($this->modified) {
-			$user = $this->guard->user();
-			$userId = -1;
-
-			if ($user !== null) {
-				$userId = $user->getAuthIdentifier();
-			}
-
-			return $this->flush($userId);
-		}
-
-		return false;
-	}
-
-	/**
-	 * Flush all setting changes to the backing store.
-	 *
-	 * @param int $userId The ID of the user to save the user settings for.
-	 *
-	 * @return bool Whether the settings were flushed correctly.
-	 */
-	abstract protected function flush($userId = -1);
 
 	/**
 	 * Get all settings.
