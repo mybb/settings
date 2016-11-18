@@ -179,7 +179,6 @@ abstract class Store implements \ArrayAccess
                 if (is_array($value) && isset($value[$k])) {
                     $settingKey = $v;
                     $settingVal = $value[$k];
-
                 }
 
                 $this->set($settingKey, $settingVal, $useUserSettings, $package);
