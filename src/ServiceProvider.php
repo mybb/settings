@@ -16,53 +16,63 @@ use Illuminate\Contracts\Foundation\Application;
 
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
-	/**
-	 * Indicates if loading of the provider is deferred.
-	 *
-	 * @var boolean
-	 */
-	protected $defer = true;
+    /**
+     * Indicates if loading of the provider is deferred.
+     *
+     * @var boolean
+     */
+    protected $defer = true;
 
-	/**
-	 * Bootstrap the application events.
-	 *
-	 * @return void
-	 */
-	public function boot()
-	{
-		$this->publishes([__DIR__ . '/config/settings.php' => config_path('settings.php')], 'config');
-		$this->publishes([__DIR__ . '/database/migrations/' => base_path('/database/migrations')], 'migrations');
-	}
+    /**
+     * Bootstrap the application events.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->publishes(
+            [__DIR__ . '/../resources/config/settings.php' => config_path('settings.php')],
+            'config'
+        );
+        $this->publishes(
+            [__DIR__ . '/../resources/database/migrations/' => base_path('/database/migrations')],
+            'migrations'
+        );
+    }
 
-	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->app->singleton('MyBB\Settings\Manager', function (Application $app) {
+    /**
+     * Register the service provider.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->app->bind(
+            Repositories\SettingRepositoryInterface::class,
+            Repositories\Eloquent\SettingRepository::class
+        );
 
-			return new Manager($app);
-		});
+        $this->app->singleton(Manager::class, function (Application $app) {
+            return new Manager($app);
+        });
 
-		$this->app->bind('MyBB\Settings\Store', function (Application $app) {
-			return $app->make('MyBB\Settings\Manager')->driver();
-		});
+        $this->app->bind(Store::class, function (Application $app) {
+            return $app->make(Manager::class)->driver();
+        });
 
-		$this->mergeConfigFrom(__DIR__ . '/config/settings.php', 'settings');
-	}
+        $this->mergeConfigFrom(__DIR__ . '/../resources/config/settings.php', 'settings');
+    }
 
-	/**
-	 * Get the services provided.
-	 *
-	 * @return array
-	 */
-	public function provides()
-	{
-		return [
-			'MyBB\Settings\Manager',
-			'MyBB\Settings\Store',
-		];
-	}
+    /**
+     * Get the services provided.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [
+            Manager::class,
+            Store::class,
+        ];
+    }
 }

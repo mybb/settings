@@ -33,18 +33,21 @@ class Setting extends Model
 	 * @var string
 	 */
 	protected $table = 'settings';
+
 	/**
 	 * The primary key for the model.
 	 *
 	 * @var string
 	 */
 	protected $primaryKey = 'id';
+
 	/**
 	 * The attributes that aren't mass assignable.
 	 *
 	 * @var array
 	 */
 	protected $guarded = [];
+
 	/**
 	 * The relations to eager load on every query.
 	 *
@@ -54,6 +57,6 @@ class Setting extends Model
 
 	public function values()
 	{
-		return $this->hasMany('MyBB\Settings\Models\SettingValue');
+		return $this->hasMany(SettingValue::class);
 	}
 }

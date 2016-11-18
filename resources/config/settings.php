@@ -11,8 +11,8 @@
  */
 
 return [
-	/**
-	 * The type of store to use to load settings from.
-	 */
-	'store' => 'database',
+    /**
+     * The type of store to use to load settings from.
+     */
+    'store' => 'database',
 ];

@@ -27,33 +27,36 @@ class SettingValue extends Model
 
 	// @codingStandardsIgnoreEnd
 
-	/**
-	 * The table associated with the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'setting_values';
-	/**
-	 * The primary key for the model.
-	 *
-	 * @var string
-	 */
-	protected $primaryKey = 'id';
-	/**
-	 * The attributes that aren't mass assignable.
-	 *
-	 * @var array
-	 */
-	protected $guarded = [];
-	/**
-	 * The relations to eager load on every query.
-	 *
-	 * @var array
-	 */
-	protected $with = [];
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'setting_values';
 
-	public function setting()
-	{
-		return $this->belongsTo('MyBB\Settings\Models\Setting');
-	}
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
+    protected $guarded = [];
+
+    /**
+     * The relations to eager load on every query.
+     *
+     * @var array
+     */
+    protected $with = [];
+
+    public function setting()
+    {
+        return $this->belongsTo(Setting::class);
+    }
 }
