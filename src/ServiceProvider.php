@@ -12,7 +12,11 @@
 
 namespace MyBB\Settings;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
+use MyBB\Settings\Repositories\Decorators\CachingSettingRepository;
+use MyBB\Settings\Repositories\Eloquent\SettingRepository;
+use MyBB\Settings\Repositories\SettingRepositoryInterface;
 
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
@@ -47,20 +51,22 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(
-            Repositories\SettingRepositoryInterface::class,
-            Repositories\Eloquent\SettingRepository::class
-        );
-
-        $this->app->singleton(Manager::class, function (Application $app) {
-            return new Manager($app);
-        });
-
-        $this->app->bind(Store::class, function (Application $app) {
-            return $app->make(Manager::class)->driver();
-        });
-
         $this->mergeConfigFrom(__DIR__ . '/../resources/config/settings.php', 'settings');
+
+        $this->app->bind(SettingRepositoryInterface::class, function (Application $app) {
+            /** @var Repository $config */
+            $config = $app['config'];
+
+            $dbRepository = $app->make(SettingRepository::class);
+
+            if ($config['settings.store'] === 'cache') {
+                return new CachingSettingRepository($app['cache'], $dbRepository);
+            }
+
+            return $dbRepository;
+        });
+
+        $this->app->singleton(Store::class);
     }
 
     /**
@@ -70,9 +76,6 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
      */
     public function provides()
     {
-        return [
-            Manager::class,
-            Store::class,
-        ];
+        return [Store::class];
     }
 }

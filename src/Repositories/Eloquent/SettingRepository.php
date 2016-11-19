@@ -51,19 +51,18 @@ class SettingRepository implements SettingRepositoryInterface
     {
         $settings = $this->settingsModel->leftJoin('setting_values', 'setting_values.setting_id', '=', 'settings.id')
             ->select([
-                'settings.id',
-                'settings.name',
-                'settings.package',
+                'settings.*',
                 'setting_values.value',
-                'setting_values.user_id'
+                'setting_values.user_id',
             ]);
 
         if ($this->guard->check()) {
             $user = $this->guard->user();
 
-            $settings = $settings->where('user_id', '=', $user->getAuthIdentifier())->orWhereNull('user_id');
+            $settings = $settings->where('setting_values.user_id', '=', $user->getAuthIdentifier())
+                ->orWhereNull('setting_values.user_id');
         } else {
-            $settings = $settings->whereNull('user_id');
+            $settings = $settings->whereNull('setting_values.user_id');
         }
 
         return $settings->get();

@@ -16,17 +16,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class SettingValue extends Model
 {
-	// @codingStandardsIgnoreStart
-
-	/**
-	 * Indicates if the model should be timestamped.
-	 *
-	 * @var boolean
-	 */
-	public $timestamps = false;
-
-	// @codingStandardsIgnoreEnd
-
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var boolean
+     */
+    public $timestamps = false;
+    
     /**
      * The table associated with the model.
      *
@@ -54,6 +50,16 @@ class SettingValue extends Model
      * @var array
      */
     protected $with = [];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'setting_id' => 'integer',
+        'user_id' => 'integer',
+    ];
 
     public function setting()
     {

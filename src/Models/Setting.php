@@ -16,47 +16,52 @@ use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
-	// @codingStandardsIgnoreStart
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var boolean
+     */
+    public $timestamps = false;
 
-	/**
-	 * Indicates if the model should be timestamped.
-	 *
-	 * @var boolean
-	 */
-	public $timestamps = false;
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'settings';
 
-	// @codingStandardsIgnoreStart
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
 
-	/**
-	 * The table associated with the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'settings';
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
+    protected $guarded = [];
 
-	/**
-	 * The primary key for the model.
-	 *
-	 * @var string
-	 */
-	protected $primaryKey = 'id';
+    /**
+     * The relations to eager load on every query.
+     *
+     * @var array
+     */
+    protected $with = [];
 
-	/**
-	 * The attributes that aren't mass assignable.
-	 *
-	 * @var array
-	 */
-	protected $guarded = [];
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'can_user_override' => 'boolean',
+    ];
 
-	/**
-	 * The relations to eager load on every query.
-	 *
-	 * @var array
-	 */
-	protected $with = [];
-
-	public function values()
-	{
-		return $this->hasMany(SettingValue::class);
-	}
+    public function values()
+    {
+        return $this->hasMany(SettingValue::class);
+    }
 }
