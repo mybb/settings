@@ -75,9 +75,9 @@ class Store implements \ArrayAccess
             $setting = $this->settings[$package][$key];
 
             if ($useUserSettings && isset($setting[static::USER_SETTING_KEY])) {
-                $val = $setting[static::USER_SETTING_KEY];
+                $val = $setting['value_' . static::USER_SETTING_KEY];
             } else {
-                $val = $setting[static::DEFAULT_SETTING_KEY];
+                $val = $setting['value_' . static::DEFAULT_SETTING_KEY];
             }
 
             if (is_null($defaultValue)) {
@@ -110,13 +110,18 @@ class Store implements \ArrayAccess
                 }
 
                 if (!isset($this->settings[$setting->package][$setting->name])) {
-                    $this->settings[$setting->package][$setting->name] = $setting->toArray();
-                    unset($this->settings[$setting->package][$setting->name]['value']);
-
+                    $this->settings[$setting->package][$setting->name] = [
+                        'id' => (int)$setting->id,
+                        'package' => $setting->package,
+                        'name' => $setting->name,
+                        'can_user_override' => $setting->can_user_override,
+                        'setting_type' => $setting->setting_type,
+                        'default_value' => $setting->default_value,
+                    ];
                 }
 
                 // TODO: handle the `setting_type` column...
-                $this->settings[$setting->package][$setting->name][$settingType] = $setting->value;
+                $this->settings[$setting->package][$setting->name]['value_' . $settingType] = $setting->value;
             }
 
             $this->hasLoaded = true;
@@ -196,7 +201,7 @@ class Store implements \ArrayAccess
             $key = $parts[1];
         } else {
             $package = 'mybb/core';
-            $key = $parts[1];
+            $key = $parts[0];
         }
 
         return $this->has($key, $package);
@@ -223,7 +228,7 @@ class Store implements \ArrayAccess
             $key = $parts[1];
         } else {
             $package = 'mybb/core';
-            $key = $parts[1];
+            $key = $parts[0];
         }
 
         return $this->get($key, null, true, $package);
