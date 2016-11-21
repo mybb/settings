@@ -1,41 +1,41 @@
 {
-    "name": "mybb/settings",
-    "description": "MyBB 2.0 settings package.",
-    "license": "BSD-3",
-    "authors": [
-        {
-            "name": "Euan T.",
-            "email": "euantor@mybb.com"
-        }
-    ],
-    "require": {
+	"name": "mybb/settings",
+	"description": "MyBB 2.0 settings package.",
+	"license": "BSD-3",
+	"authors": [
+		{
+			"name": "Euan T.",
+			"email": "euantor@mybb.com"
+		}
+	],
+	"require": {
 		"php": ">=7.0.0",
-        "illuminate/support": "^5.0",
-        "illuminate/config": "^5.0",
-        "illuminate/auth": "^5.0",
-        "illuminate/database": "^5.0",
-        "illuminate/cache": "^5.0"
-    },
+		"illuminate/support": "^5.0",
+		"illuminate/config": "^5.0",
+		"illuminate/auth": "^5.0",
+		"illuminate/database": "^5.0",
+		"illuminate/cache": "^5.0"
+	},
 	"require-dev": {
 		"friendsofphp/php-cs-fixer": "~2.0@dev",
 		"squizlabs/php_codesniffer": "~2.0@dev",
 		"phpunit/phpunit": "^5.6",
 		"mockery/mockery": "^0.9.6"
 	},
-    "autoload": {
-        "psr-4": {
-            "MyBB\\Settings\\": "src/"
-        }
-    },
+	"autoload": {
+		"psr-4": {
+			"MyBB\\Settings\\": "src/"
+		}
+	},
 	"autoload-dev": {
 		"psr-4": {
 			"MyBB\\Settings\\Test\\": "tests/"
 		}
 	},
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "config": {
-        "vendor-dir": "vendor",
-        "preferred-install": "dist"
-    }
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"config": {
+		"vendor-dir": "vendor",
+		"preferred-install": "dist"
+	}
 }
