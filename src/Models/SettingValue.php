@@ -16,44 +16,53 @@ use Illuminate\Database\Eloquent\Model;
 
 class SettingValue extends Model
 {
-	// @codingStandardsIgnoreStart
+    /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var boolean
+     */
+    public $timestamps = false;
+    
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'setting_values';
 
-	/**
-	 * Indicates if the model should be timestamped.
-	 *
-	 * @var boolean
-	 */
-	public $timestamps = false;
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
 
-	// @codingStandardsIgnoreEnd
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array
+     */
+    protected $guarded = [];
 
-	/**
-	 * The table associated with the model.
-	 *
-	 * @var string
-	 */
-	protected $table = 'setting_values';
-	/**
-	 * The primary key for the model.
-	 *
-	 * @var string
-	 */
-	protected $primaryKey = 'id';
-	/**
-	 * The attributes that aren't mass assignable.
-	 *
-	 * @var array
-	 */
-	protected $guarded = [];
-	/**
-	 * The relations to eager load on every query.
-	 *
-	 * @var array
-	 */
-	protected $with = [];
+    /**
+     * The relations to eager load on every query.
+     *
+     * @var array
+     */
+    protected $with = [];
 
-	public function setting()
-	{
-		return $this->belongsTo('MyBB\Settings\Models\Setting');
-	}
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'setting_id' => 'integer',
+        'user_id' => 'integer',
+    ];
+
+    public function setting()
+    {
+        return $this->belongsTo(Setting::class);
+    }
 }

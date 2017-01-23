@@ -13,313 +13,261 @@
 namespace MyBB\Settings;
 
 use Illuminate\Contracts\Auth\Guard;
+use MyBB\Settings\Repositories\SettingRepositoryInterface;
 
-abstract class Store
+class Store implements \ArrayAccess
 {
-	const DEFAULT_SETTING_KEY = 'default';
-	const USER_SETTING_KEY = 'user';
+    const DEFAULT_SETTING_KEY = 'default';
+    const USER_SETTING_KEY = 'user';
 
-	/**
-	 * Laravel guard instance, used to get user ID for user settings.
-	 *
-	 * @var Guard
-	 */
-	protected $guard;
+    /**
+     * @var Guard
+     */
+    protected $guard;
 
-	/**
-	 * An array of the loaded settings.
-	 *
-	 * @var array
-	 */
-	protected $settings = [];
+    /**
+     * @var SettingRepositoryInterface $settingRepository
+     */
+    protected $settingRepository;
 
-	/**
-	 * Whether the settings have been loaded yet.
-	 *
-	 * @var boolean
-	 */
-	protected $hasLoaded = false;
-	/**
-	 * Whether the settings have been modified at all.
-	 *
-	 * @var boolean
-	 */
-	protected $modified = false;
-	/**
-	 * A list of modified settings.
-	 *
-	 * @var array
-	 */
-	protected $modifiedSettings = [
-	];
-	/**
-	 * A list of created settings.
-	 *
-	 * @var array
-	 */
-	protected $createdSettings = [
-		self::DEFAULT_SETTING_KEY => [],
-		self::USER_SETTING_KEY => [],
-	];
-	/**
-	 * A list of deleted settings.
-	 *
-	 * @var array
-	 */
-	protected $deletedSettings = [];
+    /**
+     * An array of the loaded settings.
+     *
+     * @var array
+     */
+    protected $settings = [];
 
-	/**
-	 * @param Guard $guard Laravel guard instance, used to get user settings.
-	 */
-	public function __construct(Guard $guard)
-	{
-		$this->guard = $guard;
-	}
+    /**
+     * Whether the settings have been loaded yet.
+     *
+     * @var boolean
+     */
+    protected $hasLoaded = false;
 
-	/**
-	 * Get a setting value.
-	 *
-	 * @param string $key             The name of the setting.
-	 * @param mixed  $defaultValue    A default value to use if the setting does not exist. Defaults to null.
-	 * @param bool   $useUserSettings Whether to take into account user settings. User settings have priority over main
-	 *                                settings. Defaults to true.
-	 * @param string $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
-	 *
-	 * @return mixed The value of the setting.
-	 */
-	public function get($key, $defaultValue = null, $useUserSettings = true, $package = 'mybb/core')
-	{
-		$this->assertLoaded();
+    /**
+     * @param SettingRepositoryInterface $settingRepository Setting repository to load settings.
+     * @param Guard $guard Laravel guard instance, used to get user settings.
+     */
+    public function __construct(SettingRepositoryInterface $settingRepository, Guard $guard)
+    {
+        $this->settingRepository = $settingRepository;
+        $this->guard = $guard;
+    }
 
-		$val = null;
+    /**
+     * Get a setting value.
+     *
+     * @param string $key             The name of the setting.
+     * @param mixed  $defaultValue    A default value to use if the setting does not exist. Defaults to null.
+     * @param bool   $useUserSettings Whether to take into account user settings. User settings have priority over main
+     *                                settings. Defaults to true.
+     * @param string $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
+     *
+     * @return mixed The value of the setting.
+     */
+    public function get($key, $defaultValue = null, $useUserSettings = true, $package = 'mybb/core')
+    {
+        $this->assertLoaded();
 
-		if (isset($this->settings[$package][$key])) {
-			$setting = $this->settings[$package][$key];
+        $val = null;
 
-			if ($useUserSettings && isset($setting[static::USER_SETTING_KEY])) {
-				$val = $setting[static::USER_SETTING_KEY]['value'];
-			} else {
-				$val = $setting[static::DEFAULT_SETTING_KEY]['value'];
-			}
-		}
+        if (isset($this->settings[$package][$key])) {
+            $setting = $this->settings[$package][$key];
 
-		return $this->determineValue($val, $defaultValue);
-	}
+            if ($useUserSettings && isset($setting[static::USER_SETTING_KEY])) {
+                $val = $setting['value_' . static::USER_SETTING_KEY];
+            } else {
+                $val = $setting['value_' . static::DEFAULT_SETTING_KEY];
+            }
 
-	/**
-	 * Ensures settings have been loaded by the store. If not, they are loaded from the backend.
-	 */
-	protected function assertLoaded()
-	{
-		if (!$this->hasLoaded) {
-			$this->settings = $this->loadSettings();
+            if (is_null($defaultValue)) {
+                // If the default value supplied to this call is null, use the default from the store.
+                $defaultValue = $setting['default_value'];
+            }
+        }
 
-			$this->hasLoaded = true;
-		}
-	}
+        return $this->determineValue($val, $defaultValue);
+    }
 
-	/**
-	 * Load all settings into the setting store.
-	 *
-	 * @return array An array of all of the loaded settings.
-	 */
-	abstract protected function loadSettings();
+    /**
+     * Ensures settings have been loaded by the store. If not, they are loaded from the backend.
+     */
+    protected function assertLoaded()
+    {
+        if ($this->hasLoaded === false) {
+            $settings = $this->settingRepository->getAllSettingsAndValues();
 
-	/**
-	 * Determine the return value from an actual value and default value.
-	 *
-	 * @param mixed $value        The actual value.
-	 * @param mixed $defaultValue The default value.
-	 *
-	 * @return mixed The determined value. If both $value and $defaultValue are not null, $value will be typecast to
-	 *               the same type as $defaultValue.
-	 */
-	private function determineValue($value, $defaultValue)
-	{
-		if ($value === null) {
-			return $defaultValue;
-		}
+            foreach ($settings as $setting) {
+                $settingType = static::DEFAULT_SETTING_KEY;
 
-		if ($defaultValue !== null) {
-			settype($value, gettype($defaultValue));
-		}
+                if (!is_null($setting->user_id) && $setting->can_user_override) {
+                    $settingType = static::USER_SETTING_KEY;
+                }
 
-		return $value;
-	}
+                if (!is_null($setting->user_id) && !$setting->can_user_override) {
+                    // User setting value for a setting that cannot be overriden, do not store it.
+                    continue;
+                }
 
-	/**
-	 * Set a setting value.
-	 *
-	 * @param string $key             The name of the setting.
-	 * @param mixed  $value           The value for the setting.
-	 * @param bool   $useUserSettings Whether to set the setting as a user setting. Defaults to false.
-	 *
-	 * @param string $package         The name of the package the setting belongs to. Defaults to 'mybb/core'.
-	 *
-	 * @return void
-	 */
-	public function set($key, $value, $useUserSettings = false, $package = 'mybb/core')
-	{
-		$this->assertLoaded();
+                if (!isset($this->settings[$setting->package][$setting->name])) {
+                    $this->settings[$setting->package][$setting->name] = [
+                        'id' => (int)$setting->id,
+                        'package' => $setting->package,
+                        'name' => $setting->name,
+                        'can_user_override' => $setting->can_user_override,
+                        'setting_type' => $setting->setting_type,
+                        'default_value' => $setting->default_value,
+                    ];
+                }
 
-		if (!is_array($key) && $value === null) {
-			$this->delete($key, $useUserSettings, $package);
+                // TODO: handle the `setting_type` column...
+                $this->settings[$setting->package][$setting->name]['value_' . $settingType] = $setting->value;
+            }
 
-			return;
-		}
+            $this->hasLoaded = true;
+        }
+    }
 
-		if (is_array($key)) {
-			foreach ($key as $k => $v) {
-				$settingKey = $k;
-				$settingVal = $v;
+    /**
+     * Determine the return value from an actual value and default value.
+     *
+     * @param mixed $value        The actual value.
+     * @param mixed $defaultValue The default value.
+     *
+     * @return mixed The determined value. If both $value and $defaultValue are not null, $value will be typecast to
+     *               the same type as $defaultValue.
+     */
+    private function determineValue($value, $defaultValue)
+    {
+        if ($value === null) {
+            return $defaultValue;
+        }
 
-				if (is_array($value) && isset($value[$k])) {
-					$settingKey = $v;
-					$settingVal = $value[$k];
+        if ($defaultValue !== null) {
+            settype($value, gettype($defaultValue));
+        }
 
-				}
+        return $value;
+    }
 
-				$this->set($settingKey, $settingVal, $useUserSettings, $package);
-			}
-		} else {
-			$settingType = ($useUserSettings === true) ? static::USER_SETTING_KEY : static::DEFAULT_SETTING_KEY;
+    /**
+     * Check if a setting exists.
+     *
+     * @param string $key     The name of the setting.
+     * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
+     *
+     * @return bool Whether the setting exists.
+     */
+    public function has($key, $package = 'mybb/core')
+    {
+        $this->assertLoaded();
 
-			// Updating setting or adding user/default value to existing setting
-			if (isset($this->settings[$package][$key])) {
-				if (!isset($this->settings[$package][$key][$settingType])) {
-					$this->modified = true;
+        return isset($this->settings[$package][$key]);
+    }
 
-					$existingSettingType =
-						($settingType == static::USER_SETTING_KEY)
-							? static::DEFAULT_SETTING_KEY
-							: static::USER_SETTING_KEY;
+    /**
+     * Get all settings.
+     *
+     * @return array The combined user and board settings as an array.
+     */
+    public function all()
+    {
+        $this->assertLoaded();
 
-					$id = -1;
+        return $this->settings;
+    }
 
-					if (isset($this->settings[$package][$key][$existingSettingType]['id'])) {
-						$id = $this->settings[$package][$key][$existingSettingType]['id'];
-					}
+    /**
+     * Whether a offset exists
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     *
+     * @param mixed $offset <p>
+     * An offset to check for.
+     * </p>
+     *
+     * @return boolean true on success or false on failure.
+     * </p>
+     * <p>
+     * The return value will be casted to boolean if non-boolean was returned.
+     * @since 5.0.0
+     */
+    public function offsetExists($offset)
+    {
+        $parts = explode('::', $offset);
 
-					$setting = $this->settings[$package][$key][$settingType] = [
-						'id' => $id,
-						'package' => $package,
-						'name' => $key,
-						'value' => $value,
-						'user_id' => null,
-					];
+        if (count($parts) >= 2) {
+            $package = $parts[0];
+            $key = $parts[1];
+        } else {
+            $package = 'mybb/core';
+            $key = $parts[0];
+        }
 
-					if ($useUserSettings && ($user = $this->guard->user()) !== null) {
-						$setting['user_id'] = $user->getAuthIdentifier();
-					}
+        return $this->has($key, $package);
+    }
 
-					$this->modifiedSettings[$package . '.' . $key . '-' . $settingType] = $setting;
-				} else {
-					if ($this->settings[$package][$key][$settingType]['value'] != $value) {
-						$this->modified = true;
-						$this->settings[$package][$key][$settingType]['value'] = $value;
+    /**
+     * Offset to retrieve
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     *
+     * @param mixed $offset <p>
+     * The offset to retrieve.
+     * </p>
+     *
+     * @return mixed Can return all value types.
+     * @since 5.0.0
+     */
+    public function offsetGet($offset)
+    {
+        $parts = explode('::', $offset);
 
-						$setting = $this->settings[$package][$key][$settingType];
-						$setting['user_id'] = null;
+        if (count($parts) >= 2) {
+            $package = $parts[0];
+            $key = $parts[1];
+        } else {
+            $package = 'mybb/core';
+            $key = $parts[0];
+        }
 
-						if ($useUserSettings && ($user = $this->guard->user()) !== null) {
-							$setting['user_id'] = $user->getAuthIdentifier();
-						}
+        return $this->get($key, null, true, $package);
+    }
 
-						$this->modifiedSettings[$this->settings[$package][$key][$settingType]['id']] = $setting;
-					}
-				}
-			} else { // Creating setting
-				$this->modified = true;
-				$setting = $this->settings[$package][$key][$settingType] = [
-					'package' => $package,
-					'name' => $key,
-					'value' => $value,
-				];
+    /**
+     * Offset to set
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetset.php
+     *
+     * @param mixed $offset <p>
+     * The offset to assign the value to.
+     * </p>
+     * @param mixed $value <p>
+     * The value to set.
+     * </p>
+     *
+     * @return void
+     * @since 5.0.0
+     */
+    public function offsetSet($offset, $value)
+    {
+        // Do nothing
+    }
 
-				$this->createdSettings[$settingType][$package . '.' . $key] = $setting;
-			}
-		}
-	}
-
-	/**
-	 * Check if a setting exists.
-	 *
-	 * @param string $key     The name of the setting.
-	 * @param string $package The name of the package the setting belongs to. Defaults to 'mybb/core'.
-	 *
-	 * @return bool Whether the setting exists.
-	 */
-	public function has($key, $package = 'mybb/core')
-	{
-		$this->assertLoaded();
-
-		return isset($this->settings[$package][$key]);
-	}
-
-	/**
-	 * Delete a setting by key.
-	 *
-	 * @param string $key                 The key of the setting to delete.
-	 * @param bool   $dropJustUserSetting Whether to only delete the user setting if one exists.
-	 *                                    Default behaviour is to delete the setting and all values.
-	 * @param string $package             The name of the package to delete the setting for. Defaults to 'mybb/core'.
-	 */
-	public function delete($key, $dropJustUserSetting = false, $package = 'mybb/core')
-	{
-		$this->assertLoaded();
-
-		if ($this->has($key, $package)) {
-			$this->modified = true;
-
-			$this->deletedSettings[] = [
-				'package' => $package,
-				'name' => $key,
-				'just_user' => (bool)$dropJustUserSetting,
-			];
-
-			unset($this->settings[$package][$key]);
-		}
-	}
-
-	/**
-	 * Save any changes to the settings.
-	 *
-	 * @return bool Whether the settings were saved correctly.
-	 */
-	public function save()
-	{
-		if ($this->modified) {
-			$user = $this->guard->user();
-			$userId = -1;
-
-			if ($user !== null) {
-				$userId = $user->getAuthIdentifier();
-			}
-
-			return $this->flush($userId);
-		}
-
-		return false;
-	}
-
-	/**
-	 * Flush all setting changes to the backing store.
-	 *
-	 * @param int $userId The ID of the user to save the user settings for.
-	 *
-	 * @return bool Whether the settings were flushed correctly.
-	 */
-	abstract protected function flush($userId = -1);
-
-	/**
-	 * Get all settings.
-	 *
-	 * @return array The combined user and board settings as an array.
-	 */
-	public function all()
-	{
-		$this->assertLoaded();
-
-		return $this->settings;
-	}
+    /**
+     * Offset to unset
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
+     *
+     * @param mixed $offset <p>
+     * The offset to unset.
+     * </p>
+     *
+     * @return void
+     * @since 5.0.0
+     */
+    public function offsetUnset($offset)
+    {
+        // Do nothing
+    }
 }
