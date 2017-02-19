@@ -53,4 +53,78 @@ class CachingSettingRepository implements SettingRepositoryInterface
             return $this->decoratedObject->getAllSettingsAndValues();
         });
     }
+
+    /**
+     * Creating settings croups from settings names
+     *
+     * @param array $skip        Settings groups to skip
+     * @param array $forPackages Package names to limit results
+     * @return Collection|static[]
+     */
+    public function getSettingsGroups(array $skip = [], array $forPackages = [])
+    {
+        return $this->decoratedObject->getSettingsGroups($skip, $forPackages);
+    }
+
+    /**
+     * Get settings for specified group of settings
+     *
+     * @param string $group   Name of group (first segment of setting name)
+     * @param string $package Package name
+     * @return mixed Collection|static[]
+     */
+    public function getSettingsForGroup(string $group, string $package = 'mybb.core')
+    {
+        return $this->decoratedObject->getSettingsforGroup($group, $package);
+    }
+
+    /**
+     * Update single setting by id
+     *
+     * @param int $settingId Setting Id
+     * @param array $value   Setting value
+     * @return mixed
+     */
+    public function update(int $settingId, $value, $userId = false)
+    {
+        return $this->decoratedObject->update($settingId, $value, $userId);
+    }
+
+    /**
+     * Delete setting
+     *
+     * @param int $settingId Setting Id
+     * @param bool $userId   User Id
+     * @return mixed
+     */
+    public function delete(int $settingId, $userId = false)
+    {
+        return $this->decoratedObject->delete($settingId, $userId);
+    }
+
+    /**
+     * Update bunch of settings
+     *
+     * @param array $settings Setting name => value pairs
+     * @param bool $userId    User id for witch settings should be saved. Set false for global settings
+     * @param string $package Package name
+     * @return bool
+     */
+    public function updateSettings(array $settings = [], $userId = false, string $package = 'mybb/core')
+    {
+        $this->decoratedObject->updateSettings($settings, $userId, $package);
+        return $this->cache->forget('mybb/settings.allSettingsAndValues');
+    }
+
+    /**
+     * Get settings id for given names
+     *
+     * @param array $keys     Settings names
+     * @param string $package Package name
+     * @return mixed Collection|static[] setting name => setting id pairs
+     */
+    public function getIdsForKeys(array $keys = [], string $package = 'mybb/core')
+    {
+        return $this->decoratedObject->getIdsForKeys($keys, $package);
+    }
 }
